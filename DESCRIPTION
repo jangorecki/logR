@@ -1,0 +1,14 @@
+Package: logR
+Type: Package
+Title: log R processes
+Version: 1.0
+Date: 2014-07-04
+Author: Jan Gorecki
+Maintainer: Jan Gorecki <j.gorecki@wit.edu.pl>
+Description: Complete log solution, log status, timing, in/out rows,
+    warning/error messages to postgres database. In case of alert also send
+    email.
+License: GPL-3
+Imports:
+    data.table,
+    mailR
