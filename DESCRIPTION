@@ -11,4 +11,5 @@ Description: Complete log solution, log status, timing, in/out rows,
 License: GPL-3
 Imports:
     data.table,
-    mailR
+    mailR,
+    RPostgreSQL

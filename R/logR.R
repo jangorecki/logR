@@ -1,7 +1,7 @@
-#' @title logR
+#' @title logR-package
 #' @docType package
-#' @import mailR data.table
-#' @name logR
+#' @import mailR data.table RPostgreSQL
+#' @name logR-package
 NULL
 
 #' @title measure and log
@@ -17,7 +17,8 @@ NULL
 #' @param ddl only create table for logR logs, skip processing
 #' @param ddl.purge logical if drop exists log table and recreate
 #' @description Complete log solution, log status, timing, in-out rows to database. In case of alert also send email.
-#' @return result of expr, unless it's error
+#' @return result of expr, unless it's error. Side effect is entry in database \code{conn} in \code{log_table}. If \code{mail} provided another side effect is email send according to \code{mail} argument.
+#' @export
 logR <- function(expr, gcFirst = FALSE, silent = FALSE, mail = list(),
                  tag = NA_character_, 
                  in_rows = NA_integer_,
@@ -47,7 +48,6 @@ logR <- function(expr, gcFirst = FALSE, silent = FALSE, mail = list(),
   alert <- FALSE
   call <- NA_character_
   message <- NA_character_
-  browser()
   r <- tryCatch(expr = eval.parent(substitute(expr)),
                 warning = function(w){
                   status <<- "warning"
@@ -68,15 +68,16 @@ logR <- function(expr, gcFirst = FALSE, silent = FALSE, mail = list(),
                    out_rows = nrowDT(r),
                    elapsed = round(proc.time()[[3]] - ptm,3), 
                    call = call, message = message)
-  if(verbose > 0) print(DT)
   if(alert){
-    msgDT <- DT[,{
-      msg <- sprintf("%s: %s: ALERT: %s: %s: %s: %s", timestamp, parent_fun, tag, status, call, message)
-      warning(msg, call.=FALSE, immediate. = TRUE)
-      list(msg = msg)
-    }]
+    msg <- sprintf("ALERT: %s: %s: %s: %s: %s: %s", DT$timestamp, DT$parent_fun, DT$status, DT$tag, DT$call, DT$message)
+    if(verbose > 0) message(msg)
     if(length(mail) > 1){
-      mail$body <- msgDT[["msg"]]
+      mail$body <- paste("<html>",
+                         "Apache Commons Email - <img src='http://www.apache.org/images/asf_logo_wide.gif'>",
+                         "<br/>",
+                         msg,
+                         "</html>",
+                         sep="")
       do.call(send.mail, args = mail)
     }
   }
@@ -92,7 +93,8 @@ nrowDT <- function(x){
 }
 
 #' @title test logR
-#' @keywords internal
+#' @param case integer from 1 to 6
+#' @export
 logR_tester <- function(case){
   Sys.sleep(runif(1))
   r <- if(case==0){

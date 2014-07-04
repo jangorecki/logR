@@ -5,8 +5,10 @@
 \usage{
 logR_tester(case)
 }
+\arguments{
+\item{case}{integer from 1 to 6}
+}
 \description{
 test logR
 }
-\keyword{internal}
 
