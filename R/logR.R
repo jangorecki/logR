@@ -16,15 +16,16 @@ NULL
 #' @param verbose integer, default \code{1}, if \code{verbose > 0} it prints \code{alert} messages to console during the processing. Can be provided in options \code{options("logR.verbose")}.
 #' @description Complete logging solution. Evalutes, catch warning/error, log processing details to database. Log timing, in/out rows, custom metadata, waring/error messages. In case of \code{alert} also send email.
 #' @return Result of \code{expr}, unless it's error and \code{silent=FALSE}.
+#' @details As the \code{POSIXct} type is not well handled by the \code{DBI} compliant packages you should test the values stored in \code{log_table} \code{timestamp} field, also the same values after polling it from database to R. At the time of writing \code{RSQLite} is likely store it as \code{numeric}, \code{RPostgreSQL} is unable to map timezone on writing to database, this can be solved by setting global timezone as UTC: \code{Sys.setenv(TZ="UTC")}. Otherwise you can always postprocess \code{timestamp} field to correct format/timezone after polling from database.
 #' @section Side effects:
 #' \itemize{
 #' \item entry in database \code{conn} in table \code{log_table}.
-#' \item if \code{mail & alert & !silent} email send according to \code{mail.args} argument.
+#' \item in case of warning/error if \code{mail==TRUE & silent==FALSE} email will be send according to \code{mail.args} argument.
 #' }
 #' @section Mail alerts:
 #' It is possible to include processing log details in the email body. To achieve it just use the \code{mail.args} with \code{html=TRUE} and \code{body="logR"}, body will be overwritten. In case of any issues related to \code{mailR} debug with \code{do.call(send.mail, args = mail.args)}.
 #' @export
-#' @references \url{https://github.com/jangorecki/logR}\cr\url{https://github.com/rpremraj/mailR}
+#' @references  logR: \url{https://github.com/jangorecki/logR}\cr mailR: \url{https://github.com/rpremraj/mailR}
 #' @examples
 #' \dontrun{
 #'   # connect and prepare data
@@ -96,14 +97,12 @@ logR <- function(expr,
         if(!require("xtable")) stop("xtable package required to include log into alert emails", call. = TRUE)
         dbInfo <- dbGetInfo(conn)
         dbInfo <- dbInfo[names(dbInfo) %in% c("host","port","dbname")]
-        mail.args$body <- paste("<html><br/>",
+        mail.args$body <- paste("<html>",
                                 "This is the standard email notification about <b>ALERT</b> event during R processing catched by <a href='https://github.com/jangorecki/logR'>logR</a>.<br/>",
-                                paste("For details check your database",paste(names(dbInfo),dbInfo,sep="=",collapse=", "),"and/or debug directly in R.<br/>"),
-                                #"Apache Commons Email - <img src='http://www.apache.org/images/asf_logo_wide.gif'><br/>",
-                                "<br/>",
-                                xtable(DT, type="html"),
+                                gsub("\n","",print(xtable(DT), type="html", include.rownames=FALSE, print.results=FALSE)),
+                                paste("For details check logs in database<i>",paste(names(dbInfo),dbInfo,sep="=",collapse=", "),"</i>and/or debug directly in R."),
                                 "</html>",
-                                sep="")
+                                sep="<br/>")
       }
       do.call(send.mail, args = mail.args)
     }

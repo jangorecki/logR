@@ -4,6 +4,9 @@ Complete logging solution. Evalutes, catch warning/error, log processing details
 
 **Current version**: 1.0.2 ([NEWS](https://github.com/jangorecki/logR/blob/master/NEWS))
 
+Tested on postgres db so far.
+To Do: sqlite test, a few more examples.
+
 ## Installation
 
 ```R
