@@ -1,88 +1,116 @@
 #' @title logR-package
 #' @docType package
-#' @import mailR data.table RPostgreSQL
+#' @import data.table DBI
 #' @name logR-package
 NULL
 
-#' @title measure and log
-#' @param expr expression to measure and log
-#' @param gcFirst clean cache, use when comparing timings
-#' @param silent do not raise warning/error, no email alert too
-#' @param mail a list of args to be passed to \code{\link{send.mail}}, body element will be overwritten by alert.
-#' @param tag character
-#' @param in_rows integer input DT nrow
-#' @param conn database connection
-#' @param log_table length 2 vector of schema and table name, default \code{c("public","logR")}
-#' @param verbose integer print status messages to console
-#' @param ddl only create table for logR logs, skip processing
-#' @param ddl.purge logical if drop exists log table and recreate
-#' @description Complete log solution, log status, timing, in-out rows to database. In case of alert also send email.
-#' @return result of expr, unless it's error. Side effect is entry in database \code{conn} in \code{log_table}. If \code{mail} provided another side effect is email send according to \code{mail} argument.
+#' @title Evalute and log details
+#' @param expr expression to be evaluted with logging.
+#' @param silent logical, if \code{TRUE} it will not raise \code{alert} (warning/error), no email alert also.
+#' @param mail logical flag, if \code{TRUE} then on \code{alert} (warning/error) will send email. Hard default \code{FALSE} due to possible cascade \code{alert}, should be used only in top logR call.
+#' @param mail.args list of args to be exactly passed to \code{send.mail}. Can be provided in options \code{options("logR.mail.args")}.
+#' @param tag character, custom \code{logR} call metadata to be logged in db.
+#' @param in_rows integer input DT nrow, \code{logR} will only \emph{guest} \code{out_rows}.
+#' @param conn database connection. Can be provided in options \code{options("logR.conn")}.
+#' @param log_table character vector, location in database to store logs, default \code{"logR"}, can be vector of length 2 to use schema: \code{c("public","logR")}. Can be provided in options \code{options("logR.log_table")}.
+#' @param verbose integer, default \code{1}, if \code{verbose > 0} it prints \code{alert} messages to console during the processing. Can be provided in options \code{options("logR.verbose")}.
+#' @description Complete logging solution. Evalutes, catch warning/error, log processing details to database. Log timing, in/out rows, custom metadata, waring/error messages. In case of \code{alert} also send email.
+#' @return Result of \code{expr}, unless it's error and \code{silent=FALSE}.
+#' @section Side effects:
+#' \itemize{
+#' \item entry in database \code{conn} in table \code{log_table}.
+#' \item if \code{mail & alert & !silent} email send according to \code{mail.args} argument.
+#' }
+#' @section Mail alerts:
+#' It is possible to include processing log details in the email body. To achieve it just use the \code{mail.args} with \code{html=TRUE} and \code{body="logR"}, body will be overwritten. In case of any issues related to \code{mailR} debug with \code{do.call(send.mail, args = mail.args)}.
 #' @export
-logR <- function(expr, gcFirst = FALSE, silent = FALSE, mail = list(),
+#' @references \url{https://github.com/jangorecki/logR}\cr\url{https://github.com/rpremraj/mailR}
+#' @examples
+#' \dontrun{
+#'   # connect and prepare data
+#'   conn <- dbConnect(...)
+#'   options("logR.conn" = conn)
+#'   f1 <- function(x) if(x==1) stop('lowest level error') else data.table(a=1:10,b=letters[1:10])
+#'   f2 <- function(x) if(x==2) stop('low level error') else logR(f1(x))
+#'   f3 <- function(x) if(x==3) stop('mid level error') else logR(f2(x))
+#'   f4 <- function(x) if(x==4) stop('high level error') else logR(f3(x))
+#'   f5 <- function(x) if(x==5) stop('highest level error') else logR(f4(x))
+#'   # run
+#'   x <- 2 # 1-5 will raise errors
+#'   logR(f5(x))
+#'   # check
+#'   (DT <- as.data.table(dbReadTable(conn, "logR")))
+#'   # close
+#'   dbDisconnect(conn)
+#' }
+logR <- function(expr, 
+                 silent = FALSE,
                  tag = NA_character_, 
                  in_rows = NA_integer_,
-                 conn = NULL,
-                 log_table = c("public","logR"), # schema, table
-                 verbose = 0, ddl = FALSE, ddl.purge = FALSE){
-  if(ddl){
-    DT <- data.table(timestamp = structure(numeric(0), class = c("POSIXct","POSIXt"), tzone = "UTC"), 
-                            status = character(0), alert = logical(0),
-                            parent_fun = character(0), tag = character(0), in_rows = integer(0), 
-                            out_rows = integer(0),
-                            elapsed = numeric(0), call = character(0), message = character(0))
-    if(dbExistsTable(conn = conn, name = log_table)){
-      if(ddl.purge) dbRemoveTable(conn = conn, name = log_table)
-      else stop(paste("table",paste(log_table,collapse="."),"already exists, use 'ddl.purge' arg to drop existing tables"))
-    }
-    stopifnot(dbWriteTable(conn = conn, name = log_table, 
-                           value = DT, 
-                           append = FALSE, row.names = FALSE))
-    if(verbose > 0) message(paste0("table created: ",paste(log_table,collapse="."),", consider index on that table"))
-    return(DT)
-  }
-  if(gcFirst) gc(FALSE)
+                 conn = getOption("logR.conn",NULL),
+                 log_table = getOption("logR.log_table","logR"),
+                 mail = FALSE,
+                 mail.args = getOption("logR.mail.args",list()),
+                 verbose = getOption("logR.verbose",1)){
+  if(is.null(conn)) stop("Missing database connection in logR function. Provide `conn` argument to logR function or set options('logR.conn') to database connection.",call.=TRUE)
+  e <- parent.frame()
   parent_fun <- if(is.call(sys.call(-1)[1])) as.character(sys.call(-1)[1]) else NA_character_
+  log_status <- "success"
+  log_call <- NULL
+  log_message <- NULL
   ptm <- proc.time()[[3]]
-  status <- "success"
-  alert <- FALSE
-  call <- NA_character_
-  message <- NA_character_
-  r <- tryCatch(expr = eval.parent(substitute(expr)),
+  r <- tryCatch(expr = eval(substitute(expr), envir = e),
                 warning = function(w){
-                  status <<- "warning"
-                  alert <<- !silent
-                  call <<- paste(as.character(w$call),collapse=" ")
-                  message <<- w$message
-                  expr
+                  log_status <<- "warning"
+                  log_call <<- w$call
+                  log_message <<- w$message
+                  if(silent) suppressWarnings(expr) else expr
                 },
                 error = function(e){
-                  status <<- "error"
-                  alert <<- !silent
-                  call <<- paste(as.character(e$call),collapse=" ")
-                  message <<- e$message
+                  log_status <<- "error"
+                  log_call <<- e$call
+                  log_message <<- e$message
                   e
                 })
-  DT <- data.table(timestamp = Sys.time(), status = status, alert = alert,
-                   parent_fun = parent_fun, tag = tag, in_rows = in_rows, 
-                   out_rows = nrowDT(r),
-                   elapsed = round(proc.time()[[3]] - ptm,3), 
-                   call = call, message = message)
-  if(alert){
-    msg <- sprintf("ALERT: %s: %s: %s: %s: %s: %s", DT$timestamp, DT$parent_fun, DT$status, DT$tag, DT$call, DT$message)
-    if(verbose > 0) message(msg)
-    if(length(mail) > 1){
-      mail$body <- paste("<html>",
-                         "Apache Commons Email - <img src='http://www.apache.org/images/asf_logo_wide.gif'>",
-                         "<br/>",
-                         msg,
-                         "</html>",
-                         sep="")
-      do.call(send.mail, args = mail)
-    }
+  if(log_status %in% "success"){
+    DT <- data.table(timestamp = Sys.time(), status = log_status, alert = FALSE,
+                     parent_fun = parent_fun, tag = tag, in_rows = in_rows, 
+                     out_rows = nrowDT(r), elapsed = round(proc.time()[[3]] - ptm,3), 
+                     call = NA_character_, message = NA_character_)
+  }
+  else if(log_status %in% c("warning","error")){
+    DT <- data.table(timestamp = Sys.time(), status = log_status, alert = !silent,
+                     parent_fun = parent_fun, tag = tag, in_rows = in_rows, 
+                     out_rows = nrowDT(r), elapsed = round(proc.time()[[3]] - ptm,3), 
+                     call = paste(as.character(log_call),collapse=" "), message = log_message)
   }
   stopifnot(dbWriteTable(conn = conn, name = log_table, value = DT, row.names = FALSE, append = TRUE))
-  return(r)
+  
+  if(log_status %in% c("warning","error") & !silent){
+    msg <- sprintf("ALERT: %s: %s: %s: %s: %s: %s", DT$timestamp, DT$parent_fun, DT$status, DT$tag, DT$call, DT$message)
+    if(verbose > 0) message(msg)
+    if(mail){
+      if(length(mail.args) == 0) stop(paste("In the logR function when using `mail` TRUE then also non zero length `mail.args` must be provided."))
+      if(!require("mailR")) stop("mailR package required to send alert emails", call. = TRUE)
+      if(isTRUE(mail.args[["html"]]) & identical(mail.args[["body"]],"logR")){
+        if(!require("xtable")) stop("xtable package required to include log into alert emails", call. = TRUE)
+        dbInfo <- dbGetInfo(conn)
+        dbInfo <- dbInfo[names(dbInfo) %in% c("host","port","dbname")]
+        mail.args$body <- paste("<html><br/>",
+                                "This is the standard email notification about <b>ALERT</b> event during R processing catched by <a href='https://github.com/jangorecki/logR'>logR</a>.<br/>",
+                                paste("For details check your database",paste(names(dbInfo),dbInfo,sep="=",collapse=", "),"and/or debug directly in R.<br/>"),
+                                #"Apache Commons Email - <img src='http://www.apache.org/images/asf_logo_wide.gif'><br/>",
+                                "<br/>",
+                                xtable(DT, type="html"),
+                                "</html>",
+                                sep="")
+      }
+      do.call(send.mail, args = mail.args)
+    }
+  }
+  if(log_status %in% "error" & !silent) stop(r)
+  else if(log_status %in% "error" & silent) return(NULL)
+  else return(r)
 }
 
 #' @title nrow if DT else NA
@@ -92,29 +120,10 @@ nrowDT <- function(x){
   else NA_integer_
 }
 
-#' @title test logR
-#' @param case integer from 1 to 6
-#' @export
-logR_tester <- function(case){
-  Sys.sleep(runif(1))
-  r <- if(case==0){
-    NULL
-  } else if(case==1){
-    numeric(0)
-  } else if(case==2){
-    character(1)
-  } else if(case==3){
-    data.table(a = 1:12, b = letters[1:12])
-  } else if(case==4){
-    warning("case 4 warning")
-    data.table(a = 1:12, b = letters[1:12])
-  } else if(case==5){
-    warning("case 5a warning")
-    warning("case 5b warning")
-    data.table(NULL)
-  } else if(case==6){
-    stop("case 6 raise error")
-    data.table(a = 1:12, b = letters[1:12])
-  } else stop("unknown 'case' arg in logR_tester") 
-  return(r)
+#' @title fix xtable POSIXct rendering
+#' @references \url{http://stackoverflow.com/a/8658044/2490497}
+#' @keywords internal
+xtable <- function(x, ...) {
+  for (i in which(sapply(x, function(y) !all(is.na(match(c("POSIXt","Date"),class(y))))))) x[[i]] <- as.character(x[[i]])
+  xtable::xtable(x, ...)
 }

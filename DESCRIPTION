@@ -1,15 +1,18 @@
 Package: logR
 Type: Package
-Title: log R processes
-Version: 1.0
-Date: 2014-07-04
+Title: Log R processes
+Version: 1.0.2
+Date: 2014-07-06
 Author: Jan Gorecki
 Maintainer: Jan Gorecki <j.gorecki@wit.edu.pl>
-Description: Complete log solution, log status, timing, in/out rows,
-    warning/error messages to postgres database. In case of alert also send
-    email.
+Description: Complete logging solution. Evalutes, catch warning/error, log
+    processing details to database. Log timing, in/out rows, custom metadata,
+    waring/error messages. In case of alert also send email.
 License: GPL-3
+Depends:
+    data.table
 Imports:
-    data.table,
+    DBI
+Suggests:
     mailR,
-    RPostgreSQL
+    xtable

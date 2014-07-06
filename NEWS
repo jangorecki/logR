@@ -1,0 +1,16 @@
+logR 1.0.2
+==============
+* improved email message
+* doc updates
+
+
+logR 1.0.1
+==============
+* improved metadata logging
+* fixed cascade alert handling
+
+
+logR 1.0
+==============
+* core logging and error catching
+# first doc
