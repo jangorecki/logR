@@ -7,7 +7,7 @@ Author: Jan Gorecki
 Maintainer: Jan Gorecki <j.gorecki@wit.edu.pl>
 Description: Complete logging solution. Evalutes, catch warning/error, log
     processing details to database. Log timing, in/out rows, custom metadata,
-    waring/error messages. In case of alert also send email.
+    warning/error messages. In case of alert also send email.
 License: GPL-3
 Depends:
     data.table

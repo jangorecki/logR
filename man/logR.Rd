@@ -32,10 +32,13 @@ logR(expr, silent = FALSE, tag = NA_character_, in_rows = NA_integer_,
 Result of \code{expr}, unless it's error and \code{silent=FALSE}.
 }
 \description{
-Complete logging solution. Evalutes, catch warning/error, log processing details to database. Log timing, in/out rows, custom metadata, waring/error messages. In case of \code{alert} also send email.
+Complete logging solution. Evalutes, catch warning/error, log processing details to database. Log timing, in/out rows, custom metadata, warning/error messages. In case of \code{alert} also send email.
+}
+\details{
+As the \code{POSIXct} type is not well handled by the \code{DBI} compliant packages you should test the values stored in \code{log_table} \code{timestamp} field, also the same values after polling it from database to R. At the time of writing \code{RSQLite} is likely store it as \code{numeric}, \code{RPostgreSQL} is unable to map timezone on writing to database, this can be solved by setting global timezone as UTC: \code{Sys.setenv(TZ="UTC")}. Otherwise you can always postprocess \code{timestamp} field to correct format/timezone after polling from database.
 }
 \note{
-As the \code{POSIXct} type is not well handled by the \code{DBI} compliant packages you should test the values stored in \code{log_table} \code{timestamp} field, also the same values after polling it from database to R. At the time of writing \code{RSQLite} is likely store it as \code{numeric}, \code{RPostgreSQL} is unable to map timezone on writing to database, this can be solved by setting global timezone as UTC: \code{Sys.setenv(TZ="UTC")}. Otherwise you can always postprocess \code{timestamp} field to correct format/timezone after polling from database.
+Only first warning will be logged to database, and if using \code{body="logR"} also only first warning will be provided in the email.
 }
 \section{Side effects}{
 

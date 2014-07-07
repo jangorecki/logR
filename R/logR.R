@@ -14,7 +14,7 @@ NULL
 #' @param conn database connection. Can be provided in options \code{options("logR.conn")}.
 #' @param log_table character vector, location in database to store logs, default \code{"logR"}, can be vector of length 2 to use schema: \code{c("public","logR")}. Can be provided in options \code{options("logR.log_table")}.
 #' @param verbose integer, default \code{1}, if \code{verbose > 0} it prints \code{alert} messages to console during the processing. Can be provided in options \code{options("logR.verbose")}.
-#' @description Complete logging solution. Evalutes, catch warning/error, log processing details to database. Log timing, in/out rows, custom metadata, waring/error messages. In case of \code{alert} also send email.
+#' @description Complete logging solution. Evalutes, catch warning/error, log processing details to database. Log timing, in/out rows, custom metadata, warning/error messages. In case of \code{alert} also send email.
 #' @return Result of \code{expr}, unless it's error and \code{silent=FALSE}.
 #' @details As the \code{POSIXct} type is not well handled by the \code{DBI} compliant packages you should test the values stored in \code{log_table} \code{timestamp} field, also the same values after polling it from database to R. At the time of writing \code{RSQLite} is likely store it as \code{numeric}, \code{RPostgreSQL} is unable to map timezone on writing to database, this can be solved by setting global timezone as UTC: \code{Sys.setenv(TZ="UTC")}. Otherwise you can always postprocess \code{timestamp} field to correct format/timezone after polling from database.
 #' @section Side effects:
@@ -24,8 +24,9 @@ NULL
 #' }
 #' @section Mail alerts:
 #' It is possible to include processing log details in the email body. To achieve it just use the \code{mail.args} with \code{html=TRUE} and \code{body="logR"}, body will be overwritten. In case of any issues related to \code{mailR} debug with \code{do.call(send.mail, args = mail.args)}.
+#' @note Only first warning will be logged to database, and if using \code{body="logR"} also only first warning will be provided in the email.
 #' @export
-#' @references  logR: \url{https://github.com/jangorecki/logR}\cr mailR: \url{https://github.com/rpremraj/mailR}
+#' @references logR: \url{https://github.com/jangorecki/logR}\cr mailR: \url{https://github.com/rpremraj/mailR}
 #' @examples
 #' \dontrun{
 #'   # connect and prepare data
@@ -54,40 +55,49 @@ logR <- function(expr,
                  mail.args = getOption("logR.mail.args",list()),
                  verbose = getOption("logR.verbose",1)){
   if(is.null(conn)) stop("Missing database connection in logR function. Provide `conn` argument to logR function or set options('logR.conn') to database connection.",call.=TRUE)
-  e <- parent.frame()
+  env <- parent.frame()
   parent_fun <- if(is.call(sys.call(-1)[1])) as.character(sys.call(-1)[1]) else NA_character_
-  log_status <- "success"
-  log_call <- NULL
-  log_message <- NULL
+  tryCatch.W.E <- function(expr){
+    # https://stat.ethz.ch/pipermail/r-help/2010-December/262626.html
+    W <- NULL
+    w.handler <- function(w){
+      W <<- c(W, list(w))
+      invokeRestart("muffleWarning")
+    }
+    list(value = withCallingHandlers(tryCatch(expr,
+                                              error = function(e) e),
+                                     warning = w.handler),
+         warning = W)
+  }
   ptm <- proc.time()[[3]]
-  r <- tryCatch(expr = eval(substitute(expr), envir = e),
-                warning = function(w){
-                  log_status <<- "warning"
-                  log_call <<- w$call
-                  log_message <<- w$message
-                  if(silent) suppressWarnings(expr) else expr
-                },
-                error = function(e){
-                  log_status <<- "error"
-                  log_call <<- e$call
-                  log_message <<- e$message
-                  e
-                })
-  if(log_status %in% "success"){
-    DT <- data.table(timestamp = Sys.time(), status = log_status, alert = FALSE,
-                     parent_fun = parent_fun, tag = tag, in_rows = in_rows, 
-                     out_rows = nrowDT(r), elapsed = round(proc.time()[[3]] - ptm,3), 
-                     call = NA_character_, message = NA_character_)
+  r <- tryCatch.W.E(expr = eval(substitute(expr), envir = env))
+  elapsed <- round(proc.time()[[3]] - ptm,3)
+  if("error" %in% class(r$value)){
+    log_status <- "error"
+    log_call <- paste(deparse(r$value$call),collapse=" ")
+    log_message <- paste(as.character(r$value$message),collapse=" ")
+    out_rows <- NA_integer_
+    alert <- !silent
   }
-  else if(log_status %in% c("warning","error")){
-    DT <- data.table(timestamp = Sys.time(), status = log_status, alert = !silent,
-                     parent_fun = parent_fun, tag = tag, in_rows = in_rows, 
-                     out_rows = nrowDT(r), elapsed = round(proc.time()[[3]] - ptm,3), 
-                     call = paste(as.character(log_call),collapse=" "), message = log_message)
+  else if("warning" %in% class(r$warning[[1]])){
+    log_status <- "warning"
+    log_call <- paste(deparse(r$warning[[1]]$call),collapse=" ")
+    log_message <- paste(as.character(r$warning[[1]]$message),collapse=" ")
+    out_rows <- nrowDT(r$value)
+    alert <- !silent
   }
+  else{
+    log_status <- "success"
+    log_call <- NA_character_
+    log_message <- NA_character_
+    out_rows <- nrowDT(r$value)
+    alert <- FALSE
+  }
+  DT <- data.table(timestamp = Sys.time(), status = log_status, alert = alert, parent_fun = parent_fun, tag = tag, in_rows = in_rows, out_rows = out_rows, elapsed = elapsed, call = log_call, message = log_message)
+
   stopifnot(dbWriteTable(conn = conn, name = log_table, value = DT, row.names = FALSE, append = TRUE))
   
-  if(log_status %in% c("warning","error") & !silent){
+  if(alert){
     msg <- sprintf("ALERT: %s: %s: %s: %s: %s: %s", DT$timestamp, DT$parent_fun, DT$status, DT$tag, DT$call, DT$message)
     if(verbose > 0) message(msg)
     if(mail){
@@ -107,9 +117,14 @@ logR <- function(expr,
       do.call(send.mail, args = mail.args)
     }
   }
-  if(log_status %in% "error" & !silent) stop(r)
-  else if(log_status %in% "error" & silent) return(NULL)
-  else return(r)
+  if(log_status %in% "error" & alert) stop(r$value)
+  else if(log_status %in% "error" & !alert) return(invisible(NULL))
+  else if(log_status %in% "warning" & alert){
+    lapply(r$warning, warning)
+    return(invisible(r$value))
+  }
+  else if(log_status %in% "warning" & !alert) return(invisible(r$value))
+  else return(invisible(r$value))
 }
 
 #' @title nrow if DT else NA
