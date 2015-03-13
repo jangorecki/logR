@@ -3,5 +3,6 @@
 export(logR)
 export(logR_browse)
 export(logR_schema)
+export(tryCatch_we)
 import(data.table)
 import(dwtools)

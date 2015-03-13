@@ -10,11 +10,12 @@ NULL
 #' @return a list with 'value' and 'warning', where 'value' may be an error caught.
 #' @note Modified version to catch multiple warnings.
 #' @references \url{https://stat.ethz.ch/pipermail/r-help/2010-December/262626.html}
+#' @export
 #' @author Martin Maechler
-tryCatch.W.E <- function(expr){
+tryCatch_we <- function(expr){
   W <- NULL
   w.handler <- function(w){ # warning handler
-    W <<- c(W, list(w))
+    W <<- c(W, list(w)) # append warning to list of warnings
     invokeRestart("muffleWarning")
   }
   list(value = withCallingHandlers(tryCatch(expr, error = function(e) e),
@@ -149,7 +150,7 @@ logR <- function(CALL,
   if(isTRUE(getOption("logR.nano"))){
     if(requireNamespace("microbenchmark",quietly=TRUE)){
       ts <- microbenchmark::get_nanotime()
-      r <- tryCatch.W.E(expr = eval(subCALL, envir = CALLenv))
+      r <- tryCatch_we(expr = eval(subCALL, envir = CALLenv))
       elapsed <- (microbenchmark::get_nanotime() - ts) * 1e-9
       done <- TRUE
     } else {
@@ -158,7 +159,7 @@ logR <- function(CALL,
   }
   if(!done){
     ts <- proc.time()[[3L]]
-    r <- tryCatch.W.E(expr = eval(subCALL, envir = CALLenv))
+    r <- tryCatch_we(expr = eval(subCALL, envir = CALLenv))
     elapsed <- proc.time()[[3L]] - ts
     done <- TRUE
   }
@@ -232,7 +233,7 @@ logR_browse <- function(){
 #' @param drop logical, should be objects dropped if exists.
 #' @export
 logR_schema <- function(conn.name = getOption("logR.conn"), db_vendor = "H2", drop = FALSE){
-  
+  .conn <- conn.name
   if(db_vendor == "H2"){
     if(requireNamespace("RJDBC",quietly=TRUE) & requireNamespace("RH2",quietly=TRUE)){
       

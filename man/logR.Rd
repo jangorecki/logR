@@ -96,7 +96,7 @@ f_wait <- function(x){
 }
 
 if(requireNamespace("RJDBC",quietly=TRUE) & requireNamespace("RH2",quietly=TRUE)){
-  h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
+  h2 <- list(drvName = "JDBC", conn = RJDBC::dbConnect(H2(), "jdbc:h2:mem:"))
   opts <- options("dwtools.db.conns"=list(h2=h2),
                   "logR.db" = TRUE,
                   "logR.conn" = "h2")
@@ -142,7 +142,7 @@ logR(f_success(dt),
 ## preview logs
 
 if(requireNamespace("RJDBC",quietly=TRUE) & requireNamespace("RH2",quietly=TRUE)){
-  db("LOGR","h2")
+  dwtools::db("LOGR","h2")
   options(opts)
 } else {
   fread("LOGR.csv")
