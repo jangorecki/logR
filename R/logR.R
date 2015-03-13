@@ -144,19 +144,22 @@ logR <- function(CALL,
   }
   
   # evaluate with timing and error/warning catch
+  done <- FALSE
   if(isTRUE(getOption("logR.nano"))){
     if(requireNamespace("microbenchmark",quietly=TRUE)){
       ts <- microbenchmark::get_nanotime()
       r <- tryCatch.W.E(expr = eval(subCALL, envir = CALLenv))
       elapsed <- (microbenchmark::get_nanotime() - ts) * 1e-9
+      done <- TRUE
     } else {
       warning("'logR.nano' option is TRUE but there is no microbenchmark package. Install microbenchmark or set 'logR.nano' option to FALSE. Proceeding with standard proc.time time measurement.")
     }
   }
-  if(!exists("r")){
+  if(!done){
     ts <- proc.time()[[3L]]
     r <- tryCatch.W.E(expr = eval(subCALL, envir = CALLenv))
     elapsed <- proc.time()[[3L]] - ts
+    done <- TRUE
   }
   
   .logr_end <- Sys.time()
@@ -166,7 +169,7 @@ logR <- function(CALL,
              timing = elapsed,
              out_rows = if(any(c("data.frame","data.table") %in% class(r[["value"]]))) nrow(r[["value"]]) else NA_integer_)]
   
-  if("error" %in% class(r$value)){
+  if("error" %in% class(r[["value"]])){
     logr[,`:=`(status = "error",
                cond_call = deparse_to_char(r[["value"]][["call"]]),
                cond_message = r[["value"]][["message"]])]
