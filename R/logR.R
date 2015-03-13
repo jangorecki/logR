@@ -65,7 +65,7 @@ update_make_set <- function(col, x){
 #' @param silent logical, if default \emph{TRUE} it will not raise warning or error but only log/email it.
 #' @param mail logical if \emph{TRUE} then on warning/error the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.
 #' @param mail_args list of args which will override the default logR args passed to \code{mailR::send.mail}, should at least contains \emph{to, from, smtp} elements. Default \code{getOption("logR.mail_args",NULL)}.
-#' @param .db logical, when \emph{FALSE} then function will write log to csv file instead of database. Default to \code{getOption("logR.db",TRUE)}.
+#' @param .db logical, when \emph{FALSE} then function will write log to csv file instead of database. Default to \code{getOption("logR.db",FALSE)}.
 #' @param .conn character database connection name defined for \link{db} function. Default to \code{options("logR.conn",NULL)}.
 #' @param .table character scalar, location in database to store logs, default \code{getOptions("logR.table")}.
 #' @param .log logical escape parameter, set to \emph{FALSE} to suppress logR process and just execute a call, default to \code{getOption("logR.log",TRUE)}.

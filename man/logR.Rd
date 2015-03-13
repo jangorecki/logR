@@ -22,7 +22,7 @@ logR(CALL, tag = NA_character_, in_rows = NA_integer_, silent = TRUE,
 
 \item{mail_args}{list of args which will override the default logR args passed to \code{mailR::send.mail}, should at least contains \emph{to, from, smtp} elements. Default \code{getOption("logR.mail_args",NULL)}.}
 
-\item{.db}{logical, when \emph{FALSE} then function will write log to csv file instead of database. Default to \code{getOption("logR.db",TRUE)}.}
+\item{.db}{logical, when \emph{FALSE} then function will write log to csv file instead of database. Default to \code{getOption("logR.db",FALSE)}.}
 
 \item{.conn}{character database connection name defined for \link{db} function. Default to \code{options("logR.conn",NULL)}.}
 
