@@ -84,7 +84,7 @@ update_make_set <- function(col, x){
 #' See \link{logR_schema} function body for full scripts.
 #' @note Only first warning will be logged to database. 
 #' @export
-#' @example tests/example_logR.R
+#' @example tests/example-logR.R
 logR <- function(CALL,
                  tag = NA_character_, 
                  in_rows = NA_integer_,

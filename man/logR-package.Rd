@@ -2,9 +2,7 @@
 % Please edit documentation in R/logR.R
 \docType{package}
 \name{logR-package}
-\alias{logR}
 \alias{logR-package}
-\alias{logr}
 \title{logR-package}
 \description{
 logR-package
