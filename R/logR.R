@@ -102,6 +102,7 @@ logR <- function(CALL,
     warning("logR 'in_rows' input should be integer, using NA_integer_.")
     in_rows <- NA_integer_
   }
+  logR_wd <- getwd()
   
   .db <- as.logical(.db)
   if(.db){
@@ -190,7 +191,8 @@ logR <- function(CALL,
   } else {
     # write csv log
     log_file <- paste(.table,"csv",sep=".")
-    write.table(logr,log_file,append=file.exists(log_file),sep=",",na="",col.names=!file.exists(log_file),row.names=FALSE)
+    log_file_path <- paste(logR_wd,log_file,sep="/")
+    write.table(logr,log_file_path,append=file.exists(log_file_path),sep=",",na="",col.names=!file.exists(log_file_path),row.names=FALSE)
   }
   
   # mail and error/warning
