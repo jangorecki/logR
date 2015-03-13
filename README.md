@@ -24,4 +24,4 @@ GPL-3
 
 ## Contact
 
-`J.Ggorecki@wit.edu.pl`
+`J.Gorecki@wit.edu.pl`
