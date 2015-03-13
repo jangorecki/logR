@@ -1,143 +1,311 @@
 #' @title logR-package
 #' @docType package
-#' @import data.table DBI
+#' @import data.table dwtools
 #' @name logR-package
 NULL
 
-#' @title Evalute and log details
-#' @param expr expression to be evaluted with logging.
-#' @param silent logical, if \code{TRUE} it will not raise \code{alert} (warning/error), no email alert also.
-#' @param mail logical flag, if \code{TRUE} then on \code{alert} (warning/error) will send email. Hard default \code{FALSE} due to possible cascade \code{alert}, should be used only in top logR call.
-#' @param mail.args list of args to be exactly passed to \code{send.mail}. Can be provided in options \code{options("logR.mail.args")}.
-#' @param tag character, custom \code{logR} call metadata to be logged in db.
-#' @param in_rows integer input DT nrow, \code{logR} will only \emph{guest} \code{out_rows}.
-#' @param conn database connection. Can be provided in options \code{options("logR.conn")}.
-#' @param log_table character vector, location in database to store logs, default \code{"logR"}, can be vector of length 2 to use schema: \code{c("public","logR")}. Can be provided in options \code{options("logR.log_table")}.
-#' @param verbose integer, default \code{1}, if \code{verbose > 0} it prints \code{alert} messages to console during the processing. Can be provided in options \code{options("logR.verbose")}.
-#' @description Complete logging solution. Evalutes, catch warning/error, log processing details to database. Log timing, in/out rows, custom metadata, warning/error messages. In case of \code{alert} also send email.
-#' @return Result of \code{expr}, unless it's error and \code{silent=FALSE}.
-#' @details As the \code{POSIXct} type is not well handled by the \code{DBI} compliant packages you should test the values stored in \code{log_table} \code{timestamp} field, also the same values after polling it from database to R. At the time of writing \code{RSQLite} is likely store it as \code{numeric}, \code{RPostgreSQL} is unable to map timezone on writing to database, this can be solved by setting global timezone as UTC: \code{Sys.setenv(TZ="UTC")}. Otherwise you can always postprocess \code{timestamp} field to correct format/timezone after polling from database.
+#' @title tryCatch both warnings and errors
+#' @description We want to catch *and* save both errors and warnings, and in the case of a warning, also keep the computed result.
+#' @param expr
+#' @return a list with 'value' and 'warning', where 'value' may be an error caught.
+#' @note Modified version to catch multiple warnings.
+#' @references \url{https://stat.ethz.ch/pipermail/r-help/2010-December/262626.html}
+#' @author Martin Maechler
+tryCatch.W.E <- function(expr){
+  W <- NULL
+  w.handler <- function(w){ # warning handler
+    W <<- c(W, list(w))
+    invokeRestart("muffleWarning")
+  }
+  list(value = withCallingHandlers(tryCatch(expr, error = function(e) e),
+                                   warning = w.handler),
+       warning = W)
+}
+
+deparse_to_char <- function(expr) paste(deparse(expr, width.cutoff = 500L),collapse="\n")
+trunc_char <- function(x, n = 33L){
+  if(is.na(x)) return(NA_character_)
+  if(nchar(x) > n) return(paste0(substr(x,1,n),"..."))
+  return(x)
+}
+
+#' @title Prepare SQL values
+#' @description Wraps character types into single quotes, numbers as non scientific.
+#' @param col character vector of column names.
+#' @param x data.table a one row data.table.
+#' @param trunc_char_n integer number of characters to truncate character after. Default 252, \emph{...} is added to the end of string so the result will have 255 characters.
+#' @return character vector
+sql_val <- function(col, x, trunc_char_n = 252L){
+  if(is.na(x[[col]])){
+    val <- "NULL"
+  } else if(any(class(x[[col]]) %in% "character")){
+    val <- paste0("'",trunc_char(x[[col]], n = trunc_char_n),"'")
+  } else if(any(class(x[[col]]) %in% c("numeric","integer"))){
+    val <- format(x[[col]],scientific = FALSE)
+  } else{
+    val <- as.character(x[[col]])
+  }
+  val
+}
+
+#' @title Update make set
+#' @description Helper for producing update statement, wraps character types into single quotes, numbers as non scientific.
+#' @param col character vector of column names to update.
+#' @param x data.table a one row data.table.
+#' @return character vector which can be easily \code{paste(x,collapse=",")} to paste in update statement.
+update_make_set <- function(col, x){
+  paste(names(x[,col,with=FALSE]),sql_val(col,x),sep=" = ")
+}
+
+#' @title Detailed logging of R call
+#' @description Complete logging solution. Writes to database the process metadata before evaluation, and updates the status after completion. Evalutes with timing, catch warning/error, email on warning/errors, log processing details: in/out rows, custom metadata, warning/error messages.
+#' @param CALL call to be evaluted with logging.
+#' @param tag character, custom metadata to be attached to log entry.
+#' @param in_rows integer input DF/DT nrow, \emph{logR} can only guest \emph{out_rows}.
+#' @param silent logical, if default \emph{TRUE} it will not raise warning or error but only log/email it.
+#' @param mail logical if \emph{TRUE} then on warning/error the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.
+#' @param mail_args list of args which will override the default logR args passed to \code{mailR::send.mail}, should at least contains \emph{to, from, smtp} elements. Default \code{getOption("logR.mail_args",NULL)}.
+#' @param .db logical, when \emph{FALSE} then function will write log to csv file instead of database. Default to \code{getOption("logR.db",TRUE)}.
+#' @param .conn character database connection name defined for \link{db} function. Default to \code{options("logR.conn",NULL)}.
+#' @param .table character scalar, location in database to store logs, default \code{getOptions("logR.table")}.
+#' @param .log logical escape parameter, set to \emph{FALSE} to suppress logR process and just execute a call, default to \code{getOption("logR.log",TRUE)}.
+#' @return Result of evaluated \emph{CALL}.
+#' @details You may expect some silent data types conversion when writing to database, exactly the same as you would use DBI, RODBC, RJDBC packages.
 #' @section Side effects:
 #' \itemize{
-#' \item entry in database \code{conn} in table \code{log_table}.
-#' \item in case of warning/error if \code{mail==TRUE & silent==FALSE} email will be send according to \code{mail.args} argument.
+#' \item for default \emph{.db} \emph{TRUE} and \emph{.conn} character name of defined db connection the entry in table \emph{.table}.
+#' \item for \emph{.db} \emph{FALSE} the entry in \emph{.table} csv file in working directory.
+#' \item in case of warning or error and \emph{mail} set to \emph{TRUE} also the email will be send according to \emph{mail_args}.
 #' }
-#' @section Mail alerts:
-#' It is possible to include processing log details in the email body. To achieve it just use the \code{mail.args} with \code{html=TRUE} and \code{body="logR"}, body will be overwritten. In case of any issues related to \code{mailR} debug with \code{do.call(send.mail, args = mail.args)}.
-#' @note Only first warning will be logged to database, and if using \code{body="logR"} also only first warning will be provided in the email.
+#' @section Database setup:
+#' Function fetch the unique integer id from the sequence behind the view. View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}. Due to various supported database interfaces it is recommended to set maximum value of the sequence to \code{.Machine$integer.max} which is \emph{2147483647}.
+#' Log table named \code{getOption("logR.table","LOGR")} must be created.
+#' See \link{logR_schema} function body for full scripts.
+#' @note Only first warning will be logged to database. 
 #' @export
-#' @references logR: \url{https://github.com/jangorecki/logR}\cr mailR: \url{https://github.com/rpremraj/mailR}
-#' @examples
-#' \dontrun{
-#'   # connect and prepare data
-#'   conn <- dbConnect(...)
-#'   options("logR.conn" = conn)
-#'   f1 <- function(x) if(x==1) stop('lowest level error') else data.table(a=1:10,b=letters[1:10])
-#'   f2 <- function(x) if(x==2) stop('low level error') else logR(f1(x))
-#'   f3 <- function(x) if(x==3) stop('mid level error') else logR(f2(x))
-#'   f4 <- function(x) if(x==4) stop('high level error') else logR(f3(x))
-#'   f5 <- function(x) if(x==5) stop('highest level error') else logR(f4(x))
-#'   # run
-#'   x <- 2 # 1-5 will raise errors
-#'   logR(f5(x))
-#'   # check
-#'   (DT <- as.data.table(dbReadTable(conn, "logR")))
-#'   # close
-#'   dbDisconnect(conn)
-#' }
-logR <- function(expr, 
-                 silent = FALSE,
+#' @example tests/example_logR.R
+logR <- function(CALL,
                  tag = NA_character_, 
                  in_rows = NA_integer_,
-                 conn = getOption("logR.conn",NULL),
-                 log_table = getOption("logR.log_table","logR"),
-                 mail = FALSE,
-                 mail.args = getOption("logR.mail.args",list()),
-                 verbose = getOption("logR.verbose",1)){
-  if(is.null(conn)) stop("Missing database connection in logR function. Provide `conn` argument to logR function or set options('logR.conn') to database connection.",call.=TRUE)
-  env <- parent.frame()
-  parent_fun <- if(is.call(sys.call(-1)[1])) as.character(sys.call(-1)[1]) else NA_character_
-  tryCatch.W.E <- function(expr){
-    # https://stat.ethz.ch/pipermail/r-help/2010-December/262626.html
-    W <- NULL
-    w.handler <- function(w){
-      W <<- c(W, list(w))
-      invokeRestart("muffleWarning")
-    }
-    list(value = withCallingHandlers(tryCatch(expr,
-                                              error = function(e) e),
-                                     warning = w.handler),
-         warning = W)
-  }
-  ptm <- proc.time()[[3]]
-  r <- tryCatch.W.E(expr = eval(substitute(expr), envir = env))
-  elapsed <- round(proc.time()[[3]] - ptm,3)
-  if("error" %in% class(r$value)){
-    log_status <- "error"
-    log_call <- paste(deparse(r$value$call),collapse=" ")
-    log_message <- paste(as.character(r$value$message),collapse=" ")
-    out_rows <- NA_integer_
-    alert <- !silent
-  }
-  else if("warning" %in% class(r$warning[[1]])){
-    log_status <- "warning"
-    log_call <- paste(deparse(r$warning[[1]]$call),collapse=" ")
-    log_message <- paste(as.character(r$warning[[1]]$message),collapse=" ")
-    out_rows <- nrowDT(r$value)
-    alert <- !silent
-  }
-  else{
-    log_status <- "success"
-    log_call <- NA_character_
-    log_message <- NA_character_
-    out_rows <- nrowDT(r$value)
-    alert <- FALSE
-  }
-  DT <- data.table(timestamp = Sys.time(), status = log_status, alert = alert, parent_fun = parent_fun, tag = tag, in_rows = in_rows, out_rows = out_rows, elapsed = elapsed, call = log_call, message = log_message)
-
-  stopifnot(dbWriteTable(conn = conn, name = log_table, value = DT, row.names = FALSE, append = TRUE))
+                 silent = TRUE,
+                 mail = getOption("logR.mail"),
+                 mail_args = getOption("logR.mail_args"),
+                 .db = getOption("logR.db"),
+                 .conn = getOption("logR.conn"),
+                 .table = getOption("logR.table"),
+                 .log = getOption("logR.log")){
+  if(!isTRUE(.log)) return(eval.parent(CALL))
+  subCALL <- substitute(CALL)
   
-  if(alert){
-    msg <- sprintf("ALERT: %s: %s: %s: %s: %s: %s", DT$timestamp, DT$parent_fun, DT$status, DT$tag, DT$call, DT$message)
-    if(verbose > 0) message(msg)
-    if(mail){
-      if(length(mail.args) == 0) stop(paste("In the logR function when using `mail` TRUE then also non zero length `mail.args` must be provided."))
-      if(!require("mailR")) stop("mailR package required to send alert emails", call. = TRUE)
-      if(isTRUE(mail.args[["html"]]) & identical(mail.args[["body"]],"logR")){
-        if(!require("xtable")) stop("xtable package required to include log into alert emails", call. = TRUE)
-        dbInfo <- dbGetInfo(conn)
-        dbInfo <- dbInfo[names(dbInfo) %in% c("host","port","dbname")]
-        mail.args$body <- paste("<html>",
-                                "This is the standard email notification about <b>ALERT</b> event during R processing catched by <a href='https://github.com/jangorecki/logR'>logR</a>.<br/>",
-                                gsub("\n","",print(xtable(DT), type="html", include.rownames=FALSE, print.results=FALSE)),
-                                paste("For details check logs in database<i>",paste(names(dbInfo),dbInfo,sep="=",collapse=", "),"</i>and/or debug directly in R."),
-                                "</html>",
-                                sep="<br/>")
-      }
-      do.call(send.mail, args = mail.args)
+  if(!is.call(subCALL)) stop("logR only handle calls, wrap your input into function and pass function call to CALL argument.")
+  if(!is.integer(in_rows)){
+    warning("logR 'in_rows' input should be integer, using NA_integer_.")
+    in_rows <- NA_integer_
+  }
+  
+  .db <- as.logical(.db)
+  if(.db){
+    db.conns <- names(getOption("dwtools.db.conns"))
+    if(!(.conn %in% db.conns)) stop("Provided database connection name in '.conn' was not set up in getOption('dwtools.db.conns'). Read ?dwtools::db how to define setup db connections.")
+  }
+  mail <- as.logical(mail)
+  silent <- as.logical(silent)
+  
+  CALLenv <- parent.frame()
+  .logr_start <- Sys.time()
+  
+  # get logr_id from sequence
+  if(.db){
+    logr <- db(paste("SELECT logr_id FROM",getOption("logR.seq_view"))) # view to query sequence ID, using view to be db vendor independent, set view to query from sequence according to your db vendor
+  } else{
+    logr <- data.table(logr_id = as.integer(Sys.time()))
+  }
+  # set meta on start
+  logr[,`:=`(logr_start_int = as.integer(.logr_start),
+             logr_start = as.character(.logr_start),
+             call = deparse_to_char(subCALL),
+             status = NA_character_,
+             logr_end_int = NA_integer_,
+             logr_end = NA_character_,
+             timing = NA_real_,
+             in_rows = in_rows,
+             out_rows = NA_integer_,
+             tag = tag,
+             mail = mail,
+             cond_call = NA_character_,
+             cond_message = NA_character_)]
+  
+  # insert db logr entry
+  if(.db){
+    # logr <- db(logr,.table,.conn) # H2 bug in dbWriteTable? will use insert instead, it is always one row only
+    vals <- paste(vapply(names(logr),sql_val,NA_character_,logr),collapse=",")
+    ins <- paste("INSERT INTO",.table,paste0("(",paste(names(logr),collapse=","),")"),"VALUES",paste0("(",vals,");"))
+    db(ins,.conn)
+  }
+  
+  # evaluate with timing and error/warning catch
+  if(isTRUE(getOption("logR.nano"))){
+    if(requireNamespace("microbenchmark",quietly=TRUE)){
+      ts <- microbenchmark::get_nanotime()
+      r <- tryCatch.W.E(expr = eval(subCALL, envir = CALLenv))
+      elapsed <- (microbenchmark::get_nanotime() - ts) * 1e-9
+    } else {
+      warning("'logR.nano' option is TRUE but there is no microbenchmark package. Install microbenchmark or set 'logR.nano' option to FALSE. Proceeding with standard proc.time time measurement.")
     }
   }
-  if(log_status %in% "error" & alert) stop(r$value)
-  else if(log_status %in% "error" & !alert) return(invisible(NULL))
-  else if(log_status %in% "warning" & alert){
-    lapply(r$warning, warning)
-    return(invisible(r$value))
+  if(!exists("r")){
+    ts <- proc.time()[[3L]]
+    r <- tryCatch.W.E(expr = eval(subCALL, envir = CALLenv))
+    elapsed <- proc.time()[[3L]] - ts
   }
-  else if(log_status %in% "warning" & !alert) return(invisible(r$value))
-  else return(invisible(r$value))
+  
+  .logr_end <- Sys.time()
+  # set meta on end
+  logr[,`:=`(logr_end_int = as.integer(.logr_end),
+             logr_end = as.character(.logr_end),
+             timing = elapsed,
+             out_rows = if(any(c("data.frame","data.table") %in% class(r[["value"]]))) nrow(r[["value"]]) else NA_integer_)]
+  
+  if("error" %in% class(r$value)){
+    logr[,`:=`(status = "error",
+               cond_call = deparse_to_char(r[["value"]][["call"]]),
+               cond_message = r[["value"]][["message"]])]
+  } else if("warning" %in% class(r[["warning"]][[1L]])){
+    logr[,`:=`(status = "warning",
+               cond_call = deparse_to_char(r[["warning"]][[1L]][["call"]]),
+               cond_message = r[["warning"]][[1L]][["message"]])]
+  } else{
+    logr[,`:=`(status = "success")]
+  }
+  
+  # update db logr entry
+  if(.db){
+    cols_to_upd <- c("status","logr_end_int","logr_end","timing","out_rows","cond_call","cond_message")
+    upd_set <- vapply(cols_to_upd,update_make_set,NA_character_,logr)
+    sql <- paste0("UPDATE ",.table," SET ",paste(upd_set,collapse=",")," WHERE logr_id = ",format(logr[["logr_id"]],scientific = FALSE),";")
+    upd <- db(sql,.conn)
+  } else {
+    # write csv log
+    log_file <- paste(.table,"csv",sep=".")
+    write.table(logr,log_file,append=file.exists(log_file),sep=",",na="",col.names=!file.exists(log_file),row.names=FALSE)
+  }
+  
+  # mail and error/warning
+  if(logr[,status %in% c("error","warning")]){
+    # mail
+    if(mail){
+      if(!requireNamespace("mailR",quietly=TRUE)) stop("logR cannot send email without mailR package installed.")
+      if(length(mail_args) == 0L) stop("In the logR function when using 'mail' TRUE then also non zero length 'mail_args' must be provided, read ?logR")
+      if(!("smtp" %in% names(mail_args))) stop("Lack of mandatory elements provided in 'mail_args' required to send email. Read ?mailR::send.mail")
+      default_args <- list(subject = logr[,paste0("logR detects ",status," in call",if(!is.na(tag)) paste(" tagged as:",trunc_char(tag)) else paste(":",trunc_char(call)))],
+                           body = logr[,paste0("Hello logR support,\n\nProcessing details:\n- process tag:        ",tag,"\n- process call:       ",call,"\n- process start:      ",logr_start,"\n- process end:        ",logr_end,"\n- processing status:  ",status,"\n- condition call:     ",cond_call,"\n- condition message:  ",cond_message,"\n\nHave an easy debug :)\nlogR")])
+      do.call(mailR::send.mail, args = c(mail_args,default_args[!(names(default_args) %in% names(mail_args))]))
+    }
+    # raise error/warning
+    if(!silent){
+      if(logr[,status %in% "error"]) stop(r[["value"]])
+      else if(logr[,status %in% "warning"]) lapply(r[["warning"]], warning)
+    }
+  }
+  # finish
+  return(r[["value"]])
 }
 
-#' @title nrow if DT else NA
-#' @keywords internal
-nrowDT <- function(x){
-  if(any(c("data.frame","data.table") %in% class(x))) nrow(x)
-  else NA_integer_
+#' @title Browse logR data
+#' @export
+logR_browse <- function(){
+  if(!requireNamespace("shiny",quietly=TRUE)) stop("shiny package required to browse logR data")
+  # options
+  
+  # shinyApp
+  runApp(system.file("/shiny",package = "logR"))
 }
 
-#' @title fix xtable POSIXct rendering
-#' @references \url{http://stackoverflow.com/a/8658044/2490497}
-#' @keywords internal
-xtable <- function(x, ...) {
-  for (i in which(sapply(x, function(y) !all(is.na(match(c("POSIXt","Date"),class(y))))))) x[[i]] <- as.character(x[[i]])
-  xtable::xtable(x, ...)
+#' @title Populate logR schema
+#' @param conn.name character name of defined db connection.
+#' @param db_vendor character, currently supported \emph{H2} and \emph{MSSQL}.
+#' @param drop logical, should be objects dropped if exists.
+#' @export
+logR_schema <- function(conn.name = getOption("logR.conn"), db_vendor = "H2", drop = FALSE){
+  
+  if(db_vendor == "H2"){
+    if(requireNamespace("RJDBC",quietly=TRUE) & requireNamespace("RH2",quietly=TRUE)){
+      
+      if(is.null(.conn)) stop("You must provide connection name for database.")
+      db.conns <- names(getOption("dwtools.db.conns"))
+      if(!(.conn %in% db.conns)) stop("Provided database connection name in '.conn' was not set up in getOption('dwtools.db.conns'). Read ?logR or ?dwtools::db")
+      
+      #browser()
+      #if(isTRUE(drop)){
+      #  #TO DO
+      #}
+      
+      # create sequence
+      db("CREATE SEQUENCE SEQ_LOGR_ID MAXVALUE 2147483647;",.conn)
+      
+      # create view
+      db("CREATE VIEW LOGR_ID AS SELECT SEQ_LOGR_ID.nextval as logr_id FROM DUAL;",.conn)
+      
+      # create logr table
+      db('CREATE TABLE LOGR(
+        "logr_id" INTEGER PRIMARY KEY,
+        "logr_start_int" INTEGER,
+        "logr_start" VARCHAR(255),
+        "call" VARCHAR(255),
+        "status" VARCHAR(255),
+        "logr_end_int" VARCHAR(255),
+        "logr_end" VARCHAR(255),
+        "timing" DOUBLE PRECISION,
+        "in_rows" INTEGER,
+        "out_rows" INTEGER,
+        "tag" VARCHAR(255),
+        "mail" VARCHAR(255),
+        "cond_call" VARCHAR(255),
+        "cond_message" VARCHAR(255)
+       );',.conn)
+      
+    } else{
+      stop("db_vendor argument is 'H2' but no required packages installed: RJDBC, RH2")
+    }
+  } else if(db_vendor == "MSSQL"){
+    if(requireNamespace("RJDBC",quietly=TRUE)){
+      
+      if(is.null(.conn)) stop("You must provide connection name for database.")
+      db.conns <- names(getOption("dwtools.db.conns"))
+      if(!(.conn %in% db.conns)) stop("Provided database connection name in '.conn' was not set up in getOption('dwtools.db.conns'). Read ?logR or ?dwtools::db")
+      
+      #browser()
+      #if(isTRUE(drop)){
+      #  #TO DO
+      #}
+      
+#       # create sequence
+#       db("CREATE SEQUENCE SEQ_LOGR_ID MAXVALUE 2147483647;",.conn)
+#       
+#       # create view
+#       db("CREATE VIEW LOGR_ID AS SELECT SEQ_LOGR_ID.nextval as logr_id FROM DUAL;",.conn)
+#       
+#       # create logr table
+#       db('CREATE TABLE LOGR(
+#         "logr_id" INTEGER PRIMARY KEY,
+#         "logr_start_int" INTEGER,
+#         "logr_start" VARCHAR(255),
+#         "call" VARCHAR(255),
+#         "status" VARCHAR(255),
+#         "logr_end_int" VARCHAR(255),
+#         "logr_end" VARCHAR(255),
+#         "timing" DOUBLE PRECISION,
+#         "in_rows" INTEGER,
+#         "out_rows" INTEGER,
+#         "tag" VARCHAR(255),
+#         "mail" VARCHAR(255),
+#         "cond_call" VARCHAR(255),
+#         "cond_message" VARCHAR(255)
+#        );',.conn)
+      
+    } else{
+      stop("db_vendor argument is 'MSSQL' but no required packages installed: RJDBC")
+    }
+  }
+  invisible(TRUE)
 }

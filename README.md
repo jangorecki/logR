@@ -1,16 +1,14 @@
 # logR
 
-Complete logging solution. Evalutes, catch warning/error, log processing details to database. Log timing, in/out rows, custom metadata, warning/error messages. In case of alert also send email.
+Complete logging solution. Writes to database the process metadata before evaluation, and updates the status after completion. Evalutes with timing, catch warning/error, email on warning/errors, log processing details: in/out rows, custom metadata, warning/error messages.
 
-**Current version**: 1.0.2 ([NEWS](https://github.com/jangorecki/logR/blob/master/NEWS))
-
-Tested on postgres db so far.
-To Do: sqlite test, a few more examples.
+**Current version**: [1.9.9](NEWS.md)
 
 ## Installation
 
 ```R
-devtools::install_github("logR", "jangorecki")
+library(devtools)
+install_github("jangorecki/logR")
 ```
 
 ## Usage
@@ -26,4 +24,4 @@ GPL-3
 
 ## Contact
 
-`j.gorecki@wit.edu.pl`
+`J.Ggorecki@wit.edu.pl`
