@@ -1,6 +1,13 @@
 # logR
 
-Complete logging solution. Writes to database the process metadata before evaluation, and updates the status after completion. Evalutes with timing, catch warning/error, email on warning/errors, log processing details: in/out rows, custom metadata, warning/error messages.
+Extended logging solution:
+
+- [x] transactional logging: insert before evaluation, update after completion.
+- [x] warnings and error catching.
+- [x] log process metadata: in/our count, tags.
+- [x] logging to databases: DBI, RJDBC, RODBC connected by `dwtools::db` function.
+- [x] email notification on warnings/error.
+- [ ] support parallel processing?
 
 **Current version**: [1.9.9](NEWS.md)
 
