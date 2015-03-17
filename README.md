@@ -9,7 +9,7 @@ Extended logging solution:
 - [x] email notification on warnings/error.
 - [ ] support parallel processing?
 
-**Current version**: [1.9.9](NEWS.md)
+**Current version**: [1.9.9](NEWS.md) [![Build Status](https://travis-ci.org/jangorecki/logR.png?branch=master)](https://travis-ci.org/jangorecki/logR)
 
 ## Installation
 

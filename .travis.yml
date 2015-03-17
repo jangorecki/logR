@@ -1,0 +1,16 @@
+language: r
+
+apt_packages:
+ - r-cran-rjava
+
+r_packages:
+ - testthat
+ - microbenchmark
+ - mailR
+ - shiny
+ - RJDBC
+ - RH
+
+r_github_packages:
+ - Rdatatable/data.table
+ - jangorecki/dwtools
