@@ -7,7 +7,7 @@
 tryCatch_we(expr)
 }
 \arguments{
-\item{expr}{}
+\item{expr}{expression to evaluate with warnings and error handling.}
 }
 \value{
 a list with 'value' and 'warning', where 'value' may be an error caught.

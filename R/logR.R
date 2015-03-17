@@ -6,7 +6,7 @@ NULL
 
 #' @title tryCatch both warnings and errors
 #' @description We want to catch *and* save both errors and warnings, and in the case of a warning, also keep the computed result.
-#' @param expr
+#' @param expr expression to evaluate with warnings and error handling.
 #' @return a list with 'value' and 'warning', where 'value' may be an error caught.
 #' @note Modified version to catch multiple warnings.
 #' @references \url{https://stat.ethz.ch/pipermail/r-help/2010-December/262626.html}
@@ -112,6 +112,7 @@ logR <- function(CALL,
   }
   mail <- as.logical(mail)
   silent <- as.logical(silent)
+  status <- logr_start <- logr_end <- cond_call <- cond_message <- NULL # CRAN check
   
   CALLenv <- parent.frame()
   .logr_start <- Sys.time()
@@ -220,11 +221,14 @@ logR <- function(CALL,
 #' @title Browse logR data
 #' @export
 logR_browse <- function(){
-  if(!requireNamespace("shiny",quietly=TRUE)) stop("shiny package required to browse logR data")
-  # options
-  
-  # shinyApp
-  runApp(system.file("/shiny",package = "logR"))
+  if(!requireNamespace("shiny",quietly=TRUE)){
+    stop("shiny package required to browse logR data")
+  } else{
+    # options
+    
+    # shinyApp
+    shiny::runApp(system.file("/shinyApp",package = "logR"))
+  }
 }
 
 #' @title Populate logR schema

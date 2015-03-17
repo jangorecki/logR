@@ -96,7 +96,8 @@ f_wait <- function(x){
 }
 
 if(requireNamespace("RJDBC",quietly=TRUE) & requireNamespace("RH2",quietly=TRUE)){
-  h2 <- list(drvName = "JDBC", conn = RJDBC::dbConnect(H2(), "jdbc:h2:mem:"))
+  library(RH2)
+  h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
   opts <- options("dwtools.db.conns"=list(h2=h2),
                   "logR.db" = TRUE,
                   "logR.conn" = "h2")
@@ -130,14 +131,16 @@ if(requireNamespace("microbenchmark",quietly=TRUE)){
 
 ## some expected non catched warnings
 
-# silent=FALSE
-logR(f_warning_nested_double_warning(dt),
-     silent = FALSE,
-     tag = "business_process5")
-# invalid in_rows
-logR(f_success(dt),
-     tag = "business_process1",
-     in_rows = NULL)
+suppressWarnings({
+  # silent=FALSE
+  logR(f_warning_nested_double_warning(dt),
+       silent = FALSE,
+       tag = "business_process5")
+  # invalid in_rows
+  logR(f_success(dt),
+       tag = "business_process1",
+       in_rows = NULL)
+})
 
 ## preview logs
 
