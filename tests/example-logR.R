@@ -41,7 +41,7 @@ if(requireNamespace("RJDBC",quietly=TRUE) & requireNamespace("RH2",quietly=TRUE)
   opts <- options("dwtools.db.conns"=list(h2=h2),
                   "logR.db" = TRUE,
                   "logR.conn" = "h2")
-  logR_schema()
+  logR_schema(vendor = "h2")
 }
 
 logR(f_success(dt))

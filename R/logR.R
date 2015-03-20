@@ -79,9 +79,12 @@ update_make_set <- function(col, x){
 #' \item in case of warning or error and \emph{mail} set to \emph{TRUE} also the email will be send according to \emph{mail_args}.
 #' }
 #' @section Database setup:
-#' Function fetch the unique integer id from the sequence behind the view. View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}. Due to various supported database interfaces it is recommended to set maximum value of the sequence to \code{.Machine$integer.max} which is \emph{2147483647}.
-#' Log table named \code{getOption("logR.table","LOGR")} must be created.
-#' See \link{logR_schema} function body for full scripts.
+#' You can create 3 mandatory database objects automatically using \link{logR_schema} function, it works for \emph{h2, sql server, postgres, oracle} databases. For other databases just copy and adjust the scripts from \code{schema_sql()}.
+#' Logging function at start will query the unique integer id from the sequence behind the view - this isolates \code{.nextval} type calls on the database side.
+#' View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}.
+#' Third db object is log table, default \code{getOption("logR.table","LOGR")}.
+#' Due to various supported database interfaces it is recommended to set maximum value of the sequence to \code{.Machine$integer.max} which is \emph{2147483647}.
+#' @seealso \link{logR_schema}, \link{schema_sql}, \link{logR_browser}
 #' @note Only first warning will be logged to database. 
 #' @export
 #' @example tests/example-logR.R
@@ -216,106 +219,4 @@ logR <- function(CALL,
   }
   # finish
   return(r[["value"]])
-}
-
-#' @title Browse logR data
-#' @export
-logR_browse <- function(){
-  if(!requireNamespace("shiny",quietly=TRUE)){
-    stop("shiny package required to browse logR data")
-  } else{
-    # options
-    
-    # shinyApp
-    shiny::runApp(system.file("/shinyApp",package = "logR"))
-  }
-}
-
-#' @title Populate logR schema
-#' @param conn.name character name of defined db connection.
-#' @param db_vendor character, currently supported \emph{H2} and \emph{MSSQL}.
-#' @param drop logical, should be objects dropped if exists.
-#' @export
-logR_schema <- function(conn.name = getOption("logR.conn"), db_vendor = "H2", drop = FALSE){
-  .conn <- conn.name
-  if(db_vendor == "H2"){
-    if(requireNamespace("RJDBC",quietly=TRUE) & requireNamespace("RH2",quietly=TRUE)){
-      
-      if(is.null(.conn)) stop("You must provide connection name for database.")
-      db.conns <- names(getOption("dwtools.db.conns"))
-      if(!(.conn %in% db.conns)) stop("Provided database connection name in '.conn' was not set up in getOption('dwtools.db.conns'). Read ?logR or ?dwtools::db")
-      
-      #browser()
-      #if(isTRUE(drop)){
-      #  #TO DO
-      #}
-      
-      # create sequence
-      db("CREATE SEQUENCE SEQ_LOGR_ID MAXVALUE 2147483647;",.conn)
-      
-      # create view
-      db("CREATE VIEW LOGR_ID AS SELECT SEQ_LOGR_ID.nextval as logr_id FROM DUAL;",.conn)
-      
-      # create logr table
-      db('CREATE TABLE LOGR(
-        "logr_id" INTEGER PRIMARY KEY,
-        "logr_start_int" INTEGER,
-        "logr_start" VARCHAR(255),
-        "call" VARCHAR(255),
-        "status" VARCHAR(255),
-        "logr_end_int" VARCHAR(255),
-        "logr_end" VARCHAR(255),
-        "timing" DOUBLE PRECISION,
-        "in_rows" INTEGER,
-        "out_rows" INTEGER,
-        "tag" VARCHAR(255),
-        "mail" VARCHAR(255),
-        "cond_call" VARCHAR(255),
-        "cond_message" VARCHAR(255)
-       );',.conn)
-      
-    } else{
-      stop("db_vendor argument is 'H2' but no required packages installed: RJDBC, RH2")
-    }
-  } else if(db_vendor == "MSSQL"){
-    if(requireNamespace("RJDBC",quietly=TRUE)){
-      
-      if(is.null(.conn)) stop("You must provide connection name for database.")
-      db.conns <- names(getOption("dwtools.db.conns"))
-      if(!(.conn %in% db.conns)) stop("Provided database connection name in '.conn' was not set up in getOption('dwtools.db.conns'). Read ?logR or ?dwtools::db")
-      
-      #browser()
-      #if(isTRUE(drop)){
-      #  #TO DO
-      #}
-      
-#       # create sequence
-#       db("CREATE SEQUENCE SEQ_LOGR_ID MAXVALUE 2147483647;",.conn)
-#       
-#       # create view
-#       db("CREATE VIEW LOGR_ID AS SELECT SEQ_LOGR_ID.nextval as logr_id FROM DUAL;",.conn)
-#       
-#       # create logr table
-#       db('CREATE TABLE LOGR(
-#         "logr_id" INTEGER PRIMARY KEY,
-#         "logr_start_int" INTEGER,
-#         "logr_start" VARCHAR(255),
-#         "call" VARCHAR(255),
-#         "status" VARCHAR(255),
-#         "logr_end_int" VARCHAR(255),
-#         "logr_end" VARCHAR(255),
-#         "timing" DOUBLE PRECISION,
-#         "in_rows" INTEGER,
-#         "out_rows" INTEGER,
-#         "tag" VARCHAR(255),
-#         "mail" VARCHAR(255),
-#         "cond_call" VARCHAR(255),
-#         "cond_message" VARCHAR(255)
-#        );',.conn)
-      
-    } else{
-      stop("db_vendor argument is 'MSSQL' but no required packages installed: RJDBC")
-    }
-  }
-  invisible(TRUE)
 }

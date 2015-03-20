@@ -53,9 +53,11 @@ Only first warning will be logged to database.
 
 \section{Database setup}{
 
-Function fetch the unique integer id from the sequence behind the view. View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}. Due to various supported database interfaces it is recommended to set maximum value of the sequence to \code{.Machine$integer.max} which is \emph{2147483647}.
-Log table named \code{getOption("logR.table","LOGR")} must be created.
-See \link{logR_schema} function body for full scripts.
+You can create 3 mandatory database objects automatically using \link{logR_schema} function, it works for \emph{h2, sql server, postgres, oracle} databases. For other databases just copy and adjust the scripts from \code{schema_sql()}.
+Logging function at start will query the unique integer id from the sequence behind the view - this isolates \code{.nextval} type calls on the database side.
+View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}.
+Third db object is log table, default \code{getOption("logR.table","LOGR")}.
+Due to various supported database interfaces it is recommended to set maximum value of the sequence to \code{.Machine$integer.max} which is \emph{2147483647}.
 }
 \examples{
 suppressPackageStartupMessages({
@@ -101,7 +103,7 @@ if(requireNamespace("RJDBC",quietly=TRUE) & requireNamespace("RH2",quietly=TRUE)
   opts <- options("dwtools.db.conns"=list(h2=h2),
                   "logR.db" = TRUE,
                   "logR.conn" = "h2")
-  logR_schema()
+  logR_schema(vendor = "h2")
 }
 
 logR(f_success(dt))
@@ -151,5 +153,8 @@ if(requireNamespace("RJDBC",quietly=TRUE) & requireNamespace("RH2",quietly=TRUE)
   fread("LOGR.csv")
   file.remove("LOGR.csv")
 }
+}
+\seealso{
+\link{logR_schema}, \link{schema_sql}, \link{logR_browser}
 }
 

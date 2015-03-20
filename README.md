@@ -1,4 +1,4 @@
-# logR
+# logR [![Build Status](https://travis-ci.org/jangorecki/logR.png?branch=master)](https://travis-ci.org/jangorecki/logR)
 
 Extended logging solution:
 
@@ -7,9 +7,9 @@ Extended logging solution:
 - [x] log process metadata: in/our count, tags.
 - [x] logging to databases: DBI, RJDBC, RODBC connected by `dwtools::db` function.
 - [x] email notification on warnings/error.
-- [ ] support parallel processing?
+- [x] supports parallel processing.
 
-**Current version**: [1.9.9](NEWS.md) [![Build Status](https://travis-ci.org/jangorecki/logR.png?branch=master)](https://travis-ci.org/jangorecki/logR)
+**Current version:** [1.9.9](NEWS.md)
 
 ## Installation
 
