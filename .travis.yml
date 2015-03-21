@@ -1,5 +1,8 @@
 language: r
 
+env:
+ - _R_CHECK_FORCE_SUGGESTS_=false
+
 apt_packages:
  - r-cran-rjava
 
