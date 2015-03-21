@@ -2,7 +2,7 @@
 % Please edit documentation in R/logR.R
 \name{update_make_set}
 \alias{update_make_set}
-\title{Update make set}
+\title{Make SET for update statement}
 \usage{
 update_make_set(col, x)
 }

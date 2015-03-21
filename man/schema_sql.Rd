@@ -18,4 +18,12 @@ logR schema sql scripts dictionary
 \note{
 You can PR new database scripts.
 }
+\examples{
+# available vendors
+schema_sql()[, vendor]
+# scripts for each vendor
+schema_sql()[, .(sql = names(.SD)), vendor]
+# create view statements for each vendor
+schema_sql()[, create_view, vendor]
+}
 

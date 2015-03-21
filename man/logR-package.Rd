@@ -7,4 +7,7 @@
 \description{
 logR-package
 }
+\author{
+Jan Gorecki
+}
 

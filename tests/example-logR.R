@@ -35,7 +35,7 @@ f_wait <- function(x){
   x
 }
 
-if(requireNamespace("RJDBC",quietly=TRUE) & requireNamespace("RH2",quietly=TRUE)){
+if(requireNamespace("RH2",quietly=TRUE)){
   library(RH2)
   h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
   opts <- options("dwtools.db.conns"=list(h2=h2),
@@ -84,7 +84,7 @@ suppressWarnings({
 
 ## preview logs
 
-if(requireNamespace("RJDBC",quietly=TRUE) & requireNamespace("RH2",quietly=TRUE)){
+if(requireNamespace("RH2",quietly=TRUE)){
   dwtools::db("LOGR","h2")
   options(opts)
 } else {

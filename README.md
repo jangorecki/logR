@@ -2,25 +2,25 @@
 
 Extended logging solution:
 
-- [x] transactional logging: insert before evaluation, update after completion.
+- [x] transactional logging: insert log, evaluate call, update log.
 - [x] warnings and error catching.
 - [x] log process metadata: in/our count, tags.
-- [x] logging to databases: DBI, RJDBC, RODBC connected by `dwtools::db` function.
+- [x] logging to any DBI, JDBC, ODBC database supported by `dwtools::db`.
 - [x] email notification on warnings/error.
-- [x] supports parallel processing.
+- [x] support parallel processing.
 
 **Current version:** [1.9.9](NEWS.md)
 
 ## Installation
 
-```R
+```r
 library(devtools)
 install_github("jangorecki/logR")
 ```
 
 ## Usage
 
-```R
+```r
 library(logR)
 ?logR
 ```

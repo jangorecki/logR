@@ -15,16 +15,25 @@ logR_schema(conn.name = getOption("logR.conn"), vendor = c("h2",
 \item{drop}{logical, try drop before creation.}
 }
 \description{
-Populate logR schema
+There are three database objects required, all are populated by this function call. To view scripts see \link{schema_sql}.
 }
 \examples{
-# librarty()
-# setup connection
+if(requireNamespace("RH2",quietly=TRUE)){
+  library(RH2)
+  # define connection
+  h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
+  # setup options and connection
+  opts <- options("dwtools.db.conns"=list(h2=h2),
+                  "logR.db" = TRUE,
+                  "logR.conn" = "h2")
+  # run build schema scripts
+  logR_schema(vendor = "h2")
 
-#logR_schema()
-
-#library(dwtools)
-#db("SELECT * FROM DUAL;")
+  # check if exists
+  library(dwtools)
+  db("SELECT sequence_name, current_value FROM INFORMATION_SCHEMA.SEQUENCES")
+  db("SELECT table_type, table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_schema != 'INFORMATION_SCHEMA'")
+}
 }
 \seealso{
 \link{schema_sql}

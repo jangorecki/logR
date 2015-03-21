@@ -1,9 +1,5 @@
 language: r
 
-env:
- global:
-  - _R_CHECK_FORCE_SUGGESTS_=false
-
 apt_packages:
  - r-cran-rjava
 
@@ -12,6 +8,7 @@ r_packages:
  - microbenchmark
  - mailR
  - shiny
+ - DBI
  - RJDBC
  - RH2
 

@@ -40,24 +40,30 @@ Complete logging solution. Writes to database the process metadata before evalua
 You may expect some silent data types conversion when writing to database, exactly the same as you would use DBI, RODBC, RJDBC packages.
 }
 \note{
-Only first warning will be logged to database.
+Only first warning will be logged to database and mail.
 }
 \section{Side effects}{
 
 \itemize{
-\item for default \emph{.db} \emph{TRUE} and \emph{.conn} character name of defined db connection the entry in table \emph{.table}.
-\item for \emph{.db} \emph{FALSE} the entry in \emph{.table} csv file in working directory.
-\item in case of warning or error and \emph{mail} set to \emph{TRUE} also the email will be send according to \emph{mail_args}.
+\item for default \emph{.db} \emph{TRUE} and \emph{.conn} character name of defined db connection - the entry in table \emph{.table}.
+\item for \emph{.db} \emph{FALSE} - the entry in \emph{.table} csv file in working directory.
+\item in case of warnings or error and \emph{mail} set to \emph{TRUE} also the email will be send according to \emph{mail_args}.
 }
 }
 
 \section{Database setup}{
 
-You can create 3 mandatory database objects automatically using \link{logR_schema} function, it works for \emph{h2, sql server, postgres, oracle} databases. For other databases just copy and adjust the scripts from \code{schema_sql()}.
-Logging function at start will query the unique integer id from the sequence behind the view - this isolates \code{.nextval} type calls on the database side.
+You can create 3 required database objects automatically using \link{logR_schema} function, it works for \emph{h2, sql server, postgres, oracle} databases. For other databases just copy and adjust the scripts from \code{schema_sql()}.
+Logging function at start will query the unique integer id from the sequence behind the view - this isolates various SQL \code{.nextval} calls on the database side.
 View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}.
-Third db object is log table, default \code{getOption("logR.table","LOGR")}.
+Third db object is log table, default name is \code{getOption("logR.table","LOGR")}.
 Due to various supported database interfaces it is recommended to set maximum value of the sequence to \code{.Machine$integer.max} which is \emph{2147483647}.
+}
+
+\section{Fatal errors}{
+
+If your R function will manage to kill whole R session you will see that \emph{status} entry in log table will not get updated and it will stay as \emph{NA}.
+I recommend to schedule a watcher task, see vignette for example.
 }
 \examples{
 suppressPackageStartupMessages({
@@ -97,7 +103,7 @@ f_wait <- function(x){
   x
 }
 
-if(requireNamespace("RJDBC",quietly=TRUE) & requireNamespace("RH2",quietly=TRUE)){
+if(requireNamespace("RH2",quietly=TRUE)){
   library(RH2)
   h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
   opts <- options("dwtools.db.conns"=list(h2=h2),
@@ -146,7 +152,7 @@ suppressWarnings({
 
 ## preview logs
 
-if(requireNamespace("RJDBC",quietly=TRUE) & requireNamespace("RH2",quietly=TRUE)){
+if(requireNamespace("RH2",quietly=TRUE)){
   dwtools::db("LOGR","h2")
   options(opts)
 } else {
