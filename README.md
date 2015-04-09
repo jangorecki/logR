@@ -8,6 +8,7 @@ Extended logging solution:
 - [x] logging to any DBI, JDBC, ODBC database supported by `dwtools::db`.
 - [x] email notification on warnings/error.
 - [x] support parallel processing.
+- [x] shiny app web UI to browse logs.
 
 **Current version:** [1.9.9](NEWS.md)
 
