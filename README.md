@@ -28,6 +28,7 @@ library(logR)
 ?logR_browser
 
 # csv logging example
+library(shiny)
 library(data.table)
 N <- 1e5
 df <- data.frame(a = rnorm(N), b = sample(seq_len(as.integer(log(N))),N,TRUE))
