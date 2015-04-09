@@ -66,7 +66,7 @@ update_make_set <- function(col, x){
 #' @description Complete logging solution. Writes to database the process metadata before evaluation, and updates the status after completion. Evalutes with timing, catch warning/error, email on warning/errors, log processing details: in/out rows, custom metadata, warning/error messages.
 #' @param CALL call to be evaluted with logging.
 #' @param tag character, custom metadata to be attached to log entry.
-#' @param in_rows integer input DF/DT nrow, \emph{logR} can only guest \emph{out_rows}.
+#' @param in_rows integer input DF/DT nrow, \emph{logR} can only guess \emph{out_rows}.
 #' @param silent logical, if default \emph{TRUE} it will not raise warning or error but only log/email it.
 #' @param mail logical if \emph{TRUE} then on warning/error the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.
 #' @param mail_args list of args which will override the default logR args passed to \code{mailR::send.mail}, should at least contains \emph{to, from, smtp} elements. Default \code{getOption("logR.mail_args",NULL)}.
@@ -75,7 +75,7 @@ update_make_set <- function(col, x){
 #' @param .table character scalar, location in database to store logs, default \code{getOptions("logR.table")}.
 #' @param .log logical escape parameter, set to \emph{FALSE} to suppress logR process and just execute a call, default to \code{getOption("logR.log",TRUE)}.
 #' @return Result of evaluated \emph{CALL}.
-#' @details You may expect some silent data types conversion when writing to database, exactly the same as you would use DBI, RODBC, RJDBC packages.
+#' @note You may expect some silent data types conversion when writing to database, exactly the same as you would use DBI, RODBC, RJDBC packages. Only first warning will be logged to database and send on email.
 #' @section Side effects:
 #' \itemize{
 #' \item for default \emph{.db} \emph{TRUE} and \emph{.conn} character name of defined db connection - the entry in table \emph{.table}.
@@ -83,16 +83,19 @@ update_make_set <- function(col, x){
 #' \item in case of warnings or error and \emph{mail} set to \emph{TRUE} also the email will be send according to \emph{mail_args}.
 #' }
 #' @section Database setup:
-#' You can create 3 required database objects automatically using \link{logR_schema} function, it works for \emph{h2, sql server, postgres, oracle} databases. For other databases just copy and adjust the scripts from \code{schema_sql()}.
-#' Logging function at start will query the unique integer id from the sequence behind the view - this isolates various SQL \code{.nextval} calls on the database side.
-#' View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}.
-#' Third db object is log table, default name is \code{getOption("logR.table","LOGR")}.
+#' Logging process requires 3 database objects:
+#' \itemize{
+#' \item \strong{sequence} - required for transactional logging
+#' \item \strong{view} - query sequence, it isolates various SQL \code{.nextval} calls on the database side
+#' \item \strong{table} - place to store logs
+#' }
+#' You can create all three objects automatically using \link{logR_schema} function, it works for \emph{h2, sql server, postgres, oracle} databases. For other databases you can adjust scripts from \code{schema_sql()}.
+#' View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}. Default name of log table is \code{getOption("logR.table","LOGR")}.
 #' Due to various supported database interfaces it is recommended to set maximum value of the sequence to \code{.Machine$integer.max} which is \emph{2147483647}.
 #' @section Fatal errors:
 #' If your R function will manage to kill whole R session you will see that \emph{status} entry in log table will not get updated and it will stay as \emph{NA}.
-#' I recommend to schedule a watcher task, see vignette for example.
-#' @seealso \link{logR_schema}, \link{schema_sql}, \link{logR_browser}
-#' @note Only first warning will be logged to database and mail. 
+#' It might be worth to schedule a watcher task to detect such cases.
+#' @seealso \link{logR_browser}, \link{logR_schema}, \link{schema_sql}
 #' @export
 #' @example tests/example-logR.R
 logR <- function(CALL,
@@ -165,7 +168,8 @@ logR <- function(CALL,
       elapsed <- (microbenchmark::get_nanotime() - ts) * 1e-9
       done <- TRUE
     } else {
-      warning("'logR.nano' option is TRUE but there is no microbenchmark package. Install microbenchmark or set 'logR.nano' option to FALSE. Proceeding with standard proc.time time measurement.")
+      ## skip that silently
+      # warning("'logR.nano' option is TRUE but there is no microbenchmark package. Install microbenchmark or set 'logR.nano' option to FALSE. Proceeding with standard proc.time time measurement.")
     }
   }
   if(!done){
@@ -204,7 +208,7 @@ logR <- function(CALL,
     # write csv log
     log_file <- paste(.table,"csv",sep=".")
     log_file_path <- paste(logR_wd,log_file,sep="/")
-    write.table(logr,log_file_path,append=file.exists(log_file_path),sep=",",na="",col.names=!file.exists(log_file_path),row.names=FALSE)
+    write.table(logr,log_file_path,append=file.exists(log_file_path),sep=",",na="",col.names=!file.exists(log_file_path),row.names=FALSE,qmethod="double")
   }
   
   # mail and error/warning
@@ -215,7 +219,7 @@ logR <- function(CALL,
       if(length(mail_args) == 0L) stop("In the logR function when using 'mail' TRUE then also non zero length 'mail_args' must be provided, read ?logR")
       if(!("smtp" %in% names(mail_args))) stop("Lack of mandatory elements provided in 'mail_args' required to send email. Read ?mailR::send.mail")
       default_args <- list(subject = logr[,paste0("logR detects ",status," in call",if(!is.na(tag)) paste(" tagged as:",trunc_char(tag)) else paste(":",trunc_char(call)))],
-                           body = logr[,paste0("Hello logR support,\n\nProcessing details:\n- process tag:        ",tag,"\n- process call:       ",call,"\n- process start:      ",logr_start,"\n- process end:        ",logr_end,"\n- processing status:  ",status,"\n- condition call:     ",cond_call,"\n- condition message:  ",cond_message,"\n\nHave an easy debug :)\nlogR")])
+                           body = logr[,paste0("Hello logR support,\n\nProcessing details:\n- process tag:        ",tag,"\n- process call:       ",call,"\n- process start:      ",logr_start,"\n- process end:        ",logr_end,"\n- processing status:  ",status,"\n- condition call:     ",cond_call,"\n- condition message:  ",cond_message,"\n\nHave an easy debugging :)\nlogR")])
       do.call(mailR::send.mail, args = c(mail_args,default_args[!(names(default_args) %in% names(mail_args))]))
     }
     # raise error/warning

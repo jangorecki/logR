@@ -14,7 +14,7 @@ logR(CALL, tag = NA_character_, in_rows = NA_integer_, silent = TRUE,
 
 \item{tag}{character, custom metadata to be attached to log entry.}
 
-\item{in_rows}{integer input DF/DT nrow, \emph{logR} can only guest \emph{out_rows}.}
+\item{in_rows}{integer input DF/DT nrow, \emph{logR} can only guess \emph{out_rows}.}
 
 \item{silent}{logical, if default \emph{TRUE} it will not raise warning or error but only log/email it.}
 
@@ -36,11 +36,8 @@ Result of evaluated \emph{CALL}.
 \description{
 Complete logging solution. Writes to database the process metadata before evaluation, and updates the status after completion. Evalutes with timing, catch warning/error, email on warning/errors, log processing details: in/out rows, custom metadata, warning/error messages.
 }
-\details{
-You may expect some silent data types conversion when writing to database, exactly the same as you would use DBI, RODBC, RJDBC packages.
-}
 \note{
-Only first warning will be logged to database and mail.
+You may expect some silent data types conversion when writing to database, exactly the same as you would use DBI, RODBC, RJDBC packages. Only first warning will be logged to database and send on email.
 }
 \section{Side effects}{
 
@@ -53,17 +50,21 @@ Only first warning will be logged to database and mail.
 
 \section{Database setup}{
 
-You can create 3 required database objects automatically using \link{logR_schema} function, it works for \emph{h2, sql server, postgres, oracle} databases. For other databases just copy and adjust the scripts from \code{schema_sql()}.
-Logging function at start will query the unique integer id from the sequence behind the view - this isolates various SQL \code{.nextval} calls on the database side.
-View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}.
-Third db object is log table, default name is \code{getOption("logR.table","LOGR")}.
+Logging process requires 3 database objects:
+\itemize{
+\item \strong{sequence} - required for transactional logging
+\item \strong{view} - query sequence, it isolates various SQL \code{.nextval} calls on the database side
+\item \strong{table} - place to store logs
+}
+You can create all three objects automatically using \link{logR_schema} function, it works for \emph{h2, sql server, postgres, oracle} databases. For other databases you can adjust scripts from \code{schema_sql()}.
+View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}. Default name of log table is \code{getOption("logR.table","LOGR")}.
 Due to various supported database interfaces it is recommended to set maximum value of the sequence to \code{.Machine$integer.max} which is \emph{2147483647}.
 }
 
 \section{Fatal errors}{
 
 If your R function will manage to kill whole R session you will see that \emph{status} entry in log table will not get updated and it will stay as \emph{NA}.
-I recommend to schedule a watcher task, see vignette for example.
+It might be worth to schedule a watcher task to detect such cases.
 }
 \examples{
 suppressPackageStartupMessages({
@@ -129,13 +130,9 @@ logR(f_warning_nested_double_warning(dt),
      tag = "business_process5",
      in_rows = nrow(dt))
 
-if(requireNamespace("microbenchmark",quietly=TRUE)){
-  op <- options("logR.nano" = TRUE)
-  logR(f_wait(dt))
-  options(op)
-} else{
-  logR(f_wait(dt))
-}
+op <- options("logR.nano" = FALSE) # force proc.time instead nanotime
+logR(f_wait(dt), tag="nanotime force off")
+options(op)
 
 ## some expected non catched warnings
 
@@ -161,6 +158,6 @@ if(requireNamespace("RH2",quietly=TRUE)){
 }
 }
 \seealso{
-\link{logR_schema}, \link{schema_sql}, \link{logR_browser}
+\link{logR_browser}, \link{logR_schema}, \link{schema_sql}
 }
 

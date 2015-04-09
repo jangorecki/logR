@@ -61,13 +61,9 @@ logR(f_warning_nested_double_warning(dt),
      tag = "business_process5",
      in_rows = nrow(dt))
 
-if(requireNamespace("microbenchmark",quietly=TRUE)){
-  op <- options("logR.nano" = TRUE)
-  logR(f_wait(dt))
-  options(op)
-} else{
-  logR(f_wait(dt))
-}
+op <- options("logR.nano" = FALSE) # force proc.time instead nanotime
+logR(f_wait(dt), tag="nanotime force off")
+options(op)
 
 ## some expected non catched warnings
 

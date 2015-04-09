@@ -5,7 +5,7 @@
 - [x] requires sequence in database
 - [x] logging to databases using DBI, RJDBC, RODBC
 - [x] suppport for logging to csv
-- [ ] shinyApp to browse logs
+- [x] shinyApp to browse logs
 - [ ] db schema creation
   - [x] h2
   - [ ] sqlserver
@@ -14,6 +14,7 @@
 - [ ] testthat of different scenarios
 - [x] changed dependencies
 - [x] fundamentally rewrite
+- [x] documentation cleanup
 
 
 # logR 1.0.2
