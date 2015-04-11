@@ -6,6 +6,7 @@ apt_packages:
 r_packages:
  - testthat
  - microbenchmark
+ - knitr
  - mailR
  - shiny
  - DBI

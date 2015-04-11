@@ -20,7 +20,7 @@ logR(CALL, tag = NA_character_, in_rows = NA_integer_, silent = TRUE,
 
 \item{mail}{logical if \emph{TRUE} then on warning/error the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.}
 
-\item{mail_args}{list of args which will overwrite the default logR args passed to \code{mailR::send.mail}, should at least contains \emph{to, from, smtp} elements. Default \code{getOption("logR.mail_args",NULL)}.}
+\item{mail_args}{list of args which will overwrite the default logR args passed to \code{mailR::send.mail}, should at least contains \emph{to, from, smtp} elements. Default \code{getOption("logR.mail_args",NULL)}. See references for mail configuration.}
 
 \item{.db}{logical, when \emph{FALSE} then function will write log to csv file instead of database. Default to \code{getOption("logR.db",FALSE)}.}
 
@@ -64,98 +64,39 @@ Due to various supported database interfaces it is recommended to set maximum va
 \section{Fatal errors}{
 
 If your R function will manage to kill whole R session you will see that \emph{status} entry in log table will not get updated and it will stay as \emph{NA}.
-It might be worth to schedule a watcher task to detect such cases.
+It might be worth to schedule a watcher task to detect such cases, see \emph{How to use logR} vignette.
 }
 \examples{
-suppressPackageStartupMessages({
-  library(data.table)
-  library(logR)
-})
+library(data.table)
+N <- 1e5
+df <- data.frame(a = rnorm(N), b = sample(seq_len(as.integer(log(N))),N,TRUE))
+dt <- as.data.table(df)
 
-dt <- data.table(a = rnorm(10), b = sample(1:5,10,TRUE))
+# log to csv
+options("logR.db" = FALSE)
+dfr <- logR(with(df, aggregate(a, list(b), sum)), in_rows=nrow(df))
+dtr <- logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt))
+err <- logR(sum(1,"a"))
+war <- logR(cor(c(1,1),c(2,3)))
+logR_query()
+file.remove("LOGR.csv")
 
-f_success <- function(x){
-  x[,.(a=mean(a)),.(b)]
+# log to H2 database
+library(RH2)
+h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
+options("dwtools.db.conns" = list(h2=h2),
+        "logR.db" = TRUE,
+        "logR.conn" = "h2")
+logR_schema("h2")
+dfr <- logR(with(df, aggregate(a, list(b), sum)), in_rows=nrow(df))
+dtr <- logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt))
+err <- logR(sum(1,"a"))
+war <- logR(cor(c(1,1),c(2,3)))
+logR_query()
+options("logR.db" = FALSE)
 }
-f_warning <- function(x){
-  x[,.(a=log(a*(-1))),.(b)]
-}
-f_error <- function(x){
-  x[,.(a=a+as.character(a)),.(b)]
-}
-f_double_warning <- function(){
-  warning("warning A")
-  r <- 5
-  warning("warning B")
-  r^2
-}
-f_nested_double_warning <- function(x){
-  z <- f_double_warning()
-  r <- x[,.(a=mean(a+z)),.(b)]
-}
-f_warning_nested_double_warning <- function(x){
-  z <- f_double_warning()
-  r <- x[,.(a=mean(a+z)),.(b)]
-  warning("warning C")
-  r
-}
-f_wait <- function(x){
-  Sys.sleep(1.021421)
-  x
-}
-
-if(requireNamespace("RH2",quietly=TRUE)){
-  library(RH2)
-  h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
-  opts <- options("dwtools.db.conns"=list(h2=h2),
-                  "logR.db" = TRUE,
-                  "logR.conn" = "h2")
-  logR_schema(vendor = "h2")
-}
-
-logR(f_success(dt))
-
-logR(f_warning(dt),
-     tag = "business_process2") # optional tag to log
-
-logR(f_error(dt),
-     tag = "business_process3",
-     in_rows = nrow(dt)) # optional in_rows to log
-
-logR(f_nested_double_warning(dt),
-     tag = "business_process4",
-     in_rows = nrow(dt))
-
-logR(f_warning_nested_double_warning(dt),
-     tag = "business_process5",
-     in_rows = nrow(dt))
-
-op <- options("logR.nano" = FALSE) # force proc.time instead nanotime
-logR(f_wait(dt), tag="nanotime force off")
-options(op)
-
-## some expected non catched warnings
-
-suppressWarnings({
-  # silent=FALSE
-  logR(f_warning_nested_double_warning(dt),
-       silent = FALSE,
-       tag = "business_process5")
-  # invalid in_rows
-  logR(f_success(dt),
-       tag = "business_process1",
-       in_rows = NULL)
-})
-
-## preview logs
-
-if(requireNamespace("RH2",quietly=TRUE)){
-  dwtools::db("LOGR","h2")
-  options(opts)
-} else {
-  fread("LOGR.csv")
-  file.remove("LOGR.csv")
-}
+\references{
+\url{https://github.com/rpremraj/mailR}
 }
 \seealso{
 \link{logR_browser}, \link{logR_schema}, \link{schema_sql}

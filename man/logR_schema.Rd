@@ -4,13 +4,13 @@
 \alias{logR_schema}
 \title{Populate logR schema}
 \usage{
-logR_schema(conn.name = getOption("logR.conn"), vendor = c("h2",
-  "sqlserver", "postgres", "oracle"), drop = FALSE)
+logR_schema(vendor = c("h2", "sqlserver", "postgres", "oracle"),
+  conn.name = getOption("logR.conn"), drop = FALSE)
 }
 \arguments{
-\item{conn.name}{character name of defined db connection. See examples.}
-
 \item{vendor}{character, currently supported \code{c("h2","sqlserver","postgres","oracle")}.}
+
+\item{conn.name}{character name of defined db connection. See examples.}
 
 \item{drop}{logical, try drop before creation.}
 }

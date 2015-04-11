@@ -1,6 +1,6 @@
 # logR 2.0
 
-- [ ] how to use vignette
+- [x] how to use vignette
 - [x] transactional logging: insert, eval, update
 - [x] requires sequence in database
 - [x] logging to databases using DBI, RJDBC, RODBC

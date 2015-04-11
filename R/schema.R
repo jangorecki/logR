@@ -92,8 +92,8 @@ schema_sql <- function(table = getOption("logR.table"), seq_view = getOption("lo
 
 #' @title Populate logR schema
 #' @description There are three database objects required, all are populated by this function call. To view scripts see \link{schema_sql}.
-#' @param conn.name character name of defined db connection. See examples.
 #' @param vendor character, currently supported \code{c("h2","sqlserver","postgres","oracle")}.
+#' @param conn.name character name of defined db connection. See examples.
 #' @param drop logical, try drop before creation.
 #' @seealso \link{schema_sql}, \link{logR}
 #' @export
@@ -116,7 +116,7 @@ schema_sql <- function(table = getOption("logR.table"), seq_view = getOption("lo
 #'       FROM INFORMATION_SCHEMA.TABLES
 #'       WHERE table_schema != 'INFORMATION_SCHEMA'")
 #' }
-logR_schema <- function(conn.name = getOption("logR.conn"), vendor = c("h2","sqlserver","postgres","oracle"), drop = FALSE){
+logR_schema <- function(vendor = c("h2","sqlserver","postgres","oracle"), conn.name = getOption("logR.conn"), drop = FALSE){
   if(is.null(conn.name)) stop("You must provide connection name for database.")
   .conn <- conn.name
   .db.conns <- names(getOption("dwtools.db.conns"))

@@ -25,6 +25,7 @@ By default all function arguments will be taken from options which are used to s
 \examples{
 logR(Sys.sleep(0.01))
 logR_query()
+file.remove("LOGR.csv")
 }
 \seealso{
 \link{logR}, \link{logR_browser}

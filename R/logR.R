@@ -69,7 +69,7 @@ update_make_set <- function(col, x){
 #' @param in_rows integer input DF/DT nrow, \emph{logR} can only guess \emph{out_rows}.
 #' @param silent logical, if default \emph{TRUE} it will not raise warning or error but only log/email it.
 #' @param mail logical if \emph{TRUE} then on warning/error the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.
-#' @param mail_args list of args which will overwrite the default logR args passed to \code{mailR::send.mail}, should at least contains \emph{to, from, smtp} elements. Default \code{getOption("logR.mail_args",NULL)}.
+#' @param mail_args list of args which will overwrite the default logR args passed to \code{mailR::send.mail}, should at least contains \emph{to, from, smtp} elements. Default \code{getOption("logR.mail_args",NULL)}. See references for mail configuration.
 #' @param .db logical, when \emph{FALSE} then function will write log to csv file instead of database. Default to \code{getOption("logR.db",FALSE)}.
 #' @param .conn character database connection name defined for \link[dwtools]{db} function. Default to \code{options("logR.conn",NULL)}.
 #' @param .table character scalar, location in database to store logs, default \code{getOptions("logR.table")}.
@@ -94,10 +94,38 @@ update_make_set <- function(col, x){
 #' Due to various supported database interfaces it is recommended to set maximum value of the sequence to \code{.Machine$integer.max} which is \emph{2147483647}.
 #' @section Fatal errors:
 #' If your R function will manage to kill whole R session you will see that \emph{status} entry in log table will not get updated and it will stay as \emph{NA}.
-#' It might be worth to schedule a watcher task to detect such cases.
+#' It might be worth to schedule a watcher task to detect such cases, see \emph{How to use logR} vignette.
 #' @seealso \link{logR_browser}, \link{logR_schema}, \link{schema_sql}
+#' @references \url{https://github.com/rpremraj/mailR}
 #' @export
-#' @example tests/example-logR.R
+#' @examples
+#' library(data.table)
+#' N <- 1e5
+#' df <- data.frame(a = rnorm(N), b = sample(seq_len(as.integer(log(N))),N,TRUE))
+#' dt <- as.data.table(df)
+#' 
+#' # log to csv
+#' options("logR.db" = FALSE)
+#' dfr <- logR(with(df, aggregate(a, list(b), sum)), in_rows=nrow(df))
+#' dtr <- logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt))
+#' err <- logR(sum(1,"a"))
+#' war <- logR(cor(c(1,1),c(2,3)))
+#' logR_query()
+#' file.remove("LOGR.csv")
+#' 
+#' # log to H2 database
+#' library(RH2)
+#' h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
+#' options("dwtools.db.conns" = list(h2=h2),
+#'         "logR.db" = TRUE,
+#'         "logR.conn" = "h2")
+#' logR_schema("h2")
+#' dfr <- logR(with(df, aggregate(a, list(b), sum)), in_rows=nrow(df))
+#' dtr <- logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt))
+#' err <- logR(sum(1,"a"))
+#' war <- logR(cor(c(1,1),c(2,3)))
+#' logR_query()
+#' options("logR.db" = FALSE)
 logR <- function(CALL,
                  tag = NA_character_, 
                  in_rows = NA_integer_,

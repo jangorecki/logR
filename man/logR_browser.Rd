@@ -19,6 +19,7 @@ dtr <- logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt))
 err <- logR(sum(1,"a"))
 war <- logR(cor(c(1,1),c(2,3)))
 if(interactive()) logR_browser()
+file.remove("LOGR.csv")
 }
 \seealso{
 \link{logR}, \link{logR_query}

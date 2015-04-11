@@ -9,7 +9,8 @@
 #' @export
 #' @examples
 #' logR(Sys.sleep(0.01))
-#' logR_query() 
+#' logR_query()
+#' file.remove("LOGR.csv")
 logR_query <- function(.db = getOption("logR.db"), .conn = getOption("logR.conn"), .table = getOption("logR.table"), .wd = getOption("logR.wd",getwd())){
   if(is.null(.db)) stop("logR options has not been set up, reload the logR package or set 'logR.db' option.")
   else if(!isTRUE(.db)){
@@ -55,6 +56,7 @@ logR_query <- function(.db = getOption("logR.db"), .conn = getOption("logR.conn"
 #' err <- logR(sum(1,"a"))
 #' war <- logR(cor(c(1,1),c(2,3)))
 #' if(interactive()) logR_browser()
+#' file.remove("LOGR.csv")
 logR_browser <- function(){
   if(!requireNamespace("shiny",quietly=TRUE)){
     stop("shiny package required to browse logR data")

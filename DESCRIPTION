@@ -2,10 +2,11 @@ Package: logR
 Type: Package
 Title: Log R processes
 Version: 1.9.9
-Date: 2015-03-21
+Date: 2015-04-11
 Author: Jan Gorecki
 Maintainer: Jan Gorecki <J.Gorecki@wit.edu.pl>
 Description: Complete logging solution. Writes to database the process metadata before evaluation, and updates the status after completion. Evalutes with timing, catch warning/error, email on warning/errors, log processing details: in/out rows, custom metadata, warning/error messages.
+URL: https://github.com/jangorecki/logR
 License: GPL-3
 Imports:
     data.table (>= 1.9.5),
@@ -17,4 +18,6 @@ Suggests:
     shiny,
     DBI,
     RJDBC,
-    RH2
+    RH2,
+    knitr
+VignetteBuilder: knitr
