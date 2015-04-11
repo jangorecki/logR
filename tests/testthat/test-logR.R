@@ -158,3 +158,38 @@ test_that("CALL with multiple single and double quotes", {
   expect_identical(logR_query()$call,c('paste("somesingle\'andtwosingle\'\'")','paste("somedouble\\"andtwodouble\\"\\"")'))
   
 })
+
+test_that("invalid mail_args when mail on", {
+  
+  library(RH2)
+  h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
+  options("dwtools.db.conns" = list(h2=h2),
+          "logR.db" = TRUE,
+          "logR.conn" = "h2",
+          "logR.mail" = TRUE,
+          "logR.mail_args" = list(NULL))
+  logR_schema("h2")
+  expect_error(logR(sum(1:3)))
+  options("logR.mail" = FALSE,
+          "logR.mail_args" = NULL)
+  
+})
+
+
+test_that("error logged with silent=FALSE", {
+  
+  library(RH2)
+  h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
+  options("dwtools.db.conns" = list(h2=h2),
+          "logR.db" = TRUE,
+          "logR.conn" = "h2",
+          "logR.silent" = FALSE,
+          "logR.mail" = FALSE,
+          "logR.mail_args" = NULL)
+  logR_schema("h2")
+  expect_error(logR(sum(1,"a")))
+  options("logR.silent" = TRUE)
+  expect_identical(nrow(logR_query()),1L)
+  
+})
+

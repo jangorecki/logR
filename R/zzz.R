@@ -9,5 +9,6 @@
   options("logR.mail" = FALSE) # require mailR
   options("logR.mail_args" = NULL)
   options("logR.wd" = NULL)
+  options("logR.silent" = TRUE)
   
 }

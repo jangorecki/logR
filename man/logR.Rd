@@ -4,10 +4,11 @@
 \alias{logR}
 \title{Detailed logging of R call}
 \usage{
-logR(CALL, tag = NA_character_, in_rows = NA_integer_, silent = TRUE,
-  mail = getOption("logR.mail"), mail_args = getOption("logR.mail_args"),
-  .db = getOption("logR.db"), .conn = getOption("logR.conn"),
-  .table = getOption("logR.table"), .log = getOption("logR.log"))
+logR(CALL, tag = NA_character_, in_rows = NA_integer_,
+  silent = getOption("logR.silent"), mail = getOption("logR.mail"),
+  mail_args = getOption("logR.mail_args"), .db = getOption("logR.db"),
+  .conn = getOption("logR.conn"), .table = getOption("logR.table"),
+  .log = getOption("logR.log"))
 }
 \arguments{
 \item{CALL}{call to be evaluted with logging.}
@@ -16,7 +17,7 @@ logR(CALL, tag = NA_character_, in_rows = NA_integer_, silent = TRUE,
 
 \item{in_rows}{integer input DF/DT nrow, \emph{logR} can only guess \emph{out_rows}.}
 
-\item{silent}{logical, if default \emph{TRUE} it will not raise warning or error but only log/email it.}
+\item{silent}{logical, if default \code{getOption("logR.silent",TRUE)} it will not raise warning or error but only log/email it.}
 
 \item{mail}{logical if \emph{TRUE} then on warning/error the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.}
 

@@ -67,7 +67,7 @@ update_make_set <- function(col, x){
 #' @param CALL call to be evaluted with logging.
 #' @param tag character, custom metadata to be attached to log entry.
 #' @param in_rows integer input DF/DT nrow, \emph{logR} can only guess \emph{out_rows}.
-#' @param silent logical, if default \emph{TRUE} it will not raise warning or error but only log/email it.
+#' @param silent logical, if default \code{getOption("logR.silent",TRUE)} it will not raise warning or error but only log/email it.
 #' @param mail logical if \emph{TRUE} then on warning/error the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.
 #' @param mail_args list of args which will overwrite the default logR args passed to \code{mailR::send.mail}, should at least contains \emph{to, from, smtp} elements. Default \code{getOption("logR.mail_args",NULL)}. See references for mail configuration.
 #' @param .db logical, when \emph{FALSE} then function will write log to csv file instead of database. Default to \code{getOption("logR.db",FALSE)}.
@@ -129,7 +129,7 @@ update_make_set <- function(col, x){
 logR <- function(CALL,
                  tag = NA_character_, 
                  in_rows = NA_integer_,
-                 silent = TRUE,
+                 silent = getOption("logR.silent"),
                  mail = getOption("logR.mail"),
                  mail_args = getOption("logR.mail_args"),
                  .db = getOption("logR.db"),
@@ -239,26 +239,30 @@ logR <- function(CALL,
     write.table(logr,log_file_path,append=file.exists(log_file_path),sep=",",na="",col.names=!file.exists(log_file_path),row.names=FALSE,qmethod="double")
   }
   
-  # mail and error/warning
-  if(logr[,status %in% c("error","warning")]){
-    # mail
-    if(mail){
-      if(requireNamespace("mailR",quietly=TRUE)){
-        if(length(mail_args) == 0L) stop("In the logR function when using 'mail' TRUE then also non zero length 'mail_args' must be provided, read ?logR")
-        if(!("smtp" %in% names(mail_args))) stop("Lack of mandatory elements provided in 'mail_args' required to send email. Read ?mailR::send.mail")
+  # mail - test for status nested to always check mail_args
+  if(mail){
+    if(requireNamespace("mailR", quietly=TRUE)){
+      if(length(mail_args) == 0L) stop("In the logR function when using 'mail' TRUE then also non zero length 'mail_args' must be provided, read ?logR")
+      if(!("smtp" %in% names(mail_args))) stop("Lack of mandatory elements provided in 'mail_args' required to send email. Read ?mailR::send.mail")
+      if(logr[,status %in% c("error","warning")]){
         default_args <- list(subject = logr[,paste0("logR detects ",status," in call",if(!is.na(tag)) paste(" tagged as:",trunc_char(tag)) else paste(":",trunc_char(call)))],
                              body = logr[,paste0("Hello logR support,\n\nProcessing details:\n- process tag:        ",tag,"\n- process call:       ",call,"\n- process start:      ",logr_start,"\n- process end:        ",logr_end,"\n- processing status:  ",status,"\n- condition call:     ",cond_call,"\n- condition message:  ",cond_message,"\n\nHave an easy debugging :)\nlogR")])
         do.call(mailR::send.mail, args = c(mail_args,default_args[!(names(default_args) %in% names(mail_args))]))
-      } else {
-        stop("logR cannot send email without mailR package installed.")
       }
-    }
-    # raise error/warning
-    if(!silent){
-      if(logr[,status %in% "error"]) stop(r[["value"]])
-      else if(logr[,status %in% "warning"]) lapply(r[["warning"]], warning)
+    } else {
+      stop("logR mail feature requires mailR package installed.")
     }
   }
+  
+  # raise error/warning
+  if(!silent){
+    if(logr[,status %in% "error"]){
+      stop(r[["value"]])
+    } else if(logr[,status %in% "warning"]){
+      lapply(r[["warning"]], warning)
+    }
+  }
+  
   # finish
   return(r[["value"]])
 }
