@@ -11,7 +11,7 @@
   - [ ] sqlserver
   - [x] postgres
   - [ ] oracle
-- [ ] testthat of different scenarios
+- [x] testthat of different scenarios
 - [x] changed dependencies
 - [x] documentation cleanup
 - [x] fundamentally rewrite
