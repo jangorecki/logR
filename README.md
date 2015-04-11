@@ -26,7 +26,6 @@ library(logR)
 
 # read
 ?logR
-?logR_browser
 
 # csv logging example
 library(shiny)
@@ -38,6 +37,7 @@ dfr <- logR(with(df, aggregate(a, list(b), sum)), in_rows=nrow(df))
 dtr <- logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt))
 err <- logR(sum(1,"a"))
 war <- logR(cor(c(1,1),c(2,3)))
+logR_query()
 logR_browser()
 ```
 

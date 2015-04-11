@@ -44,7 +44,7 @@ sql_val <- function(col, x, trunc_char_n = 252L){
   if(is.na(x[[col]])){
     val <- "NULL"
   } else if(any(class(x[[col]]) %in% "character")){
-    val <- paste0("'",trunc_char(x[[col]], n = trunc_char_n),"'")
+    val <- paste0("'",gsub("'","''",trunc_char(x[[col]], n = trunc_char_n)),"'")
   } else if(any(class(x[[col]]) %in% c("numeric","integer"))){
     val <- format(x[[col]],scientific = FALSE)
   } else{
@@ -120,8 +120,8 @@ logR <- function(CALL,
   
   .db <- as.logical(.db)
   if(.db){
-    db.conns <- names(getOption("dwtools.db.conns"))
-    if(!(.conn %in% db.conns)) stop("Provided database connection name in '.conn' was not set up in getOption('dwtools.db.conns'). Read ?dwtools::db how to define setup db connections.")
+    .db.conns <- names(getOption("dwtools.db.conns"))
+    if(!(.conn %in% .db.conns)) stop("Provided database connection name in '.conn' was not set up in getOption('dwtools.db.conns'). Read ?dwtools::db how to define setup db connections.")
   }
   mail <- as.logical(mail)
   silent <- as.logical(silent)
@@ -132,9 +132,10 @@ logR <- function(CALL,
   
   # get logr_id from sequence
   if(.db){
-    logr <- db(paste("SELECT logr_id FROM",getOption("logR.seq_view"))) # view to query sequence ID, using view to be db vendor independent, set view to query from sequence according to your db vendor
+    # view to query sequence ID, using view to be db vendor independent, set view to query from sequence according to your db vendor
+    logr <- db(paste("SELECT logr_id FROM",getOption("logR.seq_view")))
   } else{
-    logr <- data.table(logr_id = as.integer(Sys.time()))
+    logr <- data.table(logr_id = NA_integer_)
   }
   # set meta on start
   logr[,`:=`(logr_start_int = as.integer(.logr_start),
@@ -144,19 +145,18 @@ logR <- function(CALL,
              logr_end_int = NA_integer_,
              logr_end = NA_character_,
              timing = NA_real_,
-             in_rows = in_rows,
+             in_rows = as.integer(in_rows),
              out_rows = NA_integer_,
-             tag = tag,
-             mail = mail,
+             tag = as.character(tag),
+             mail = as.integer(mail),
              cond_call = NA_character_,
              cond_message = NA_character_)]
   
   # insert db logr entry
   if(.db){
-    # logr <- db(logr,.table,.conn) # H2 bug in dbWriteTable? will use insert instead, it is always one row only
     vals <- paste(vapply(names(logr),sql_val,NA_character_,logr),collapse=",")
     ins <- paste("INSERT INTO",.table,paste0("(",paste(names(logr),collapse=","),")"),"VALUES",paste0("(",vals,");"))
-    db(ins,.conn)
+    db(ins, .conn)
   }
   
   # evaluate with timing and error/warning catch
@@ -203,7 +203,7 @@ logR <- function(CALL,
     cols_to_upd <- c("status","logr_end_int","logr_end","timing","out_rows","cond_call","cond_message")
     upd_set <- vapply(cols_to_upd,update_make_set,NA_character_,logr)
     sql <- paste0("UPDATE ",.table," SET ",paste(upd_set,collapse=",")," WHERE logr_id = ",format(logr[["logr_id"]],scientific = FALSE),";")
-    upd <- db(sql,.conn)
+    upd <- db(sql, .conn)
   } else {
     # write csv log
     log_file <- paste(.table,"csv",sep=".")
@@ -215,12 +215,15 @@ logR <- function(CALL,
   if(logr[,status %in% c("error","warning")]){
     # mail
     if(mail){
-      if(!requireNamespace("mailR",quietly=TRUE)) stop("logR cannot send email without mailR package installed.")
-      if(length(mail_args) == 0L) stop("In the logR function when using 'mail' TRUE then also non zero length 'mail_args' must be provided, read ?logR")
-      if(!("smtp" %in% names(mail_args))) stop("Lack of mandatory elements provided in 'mail_args' required to send email. Read ?mailR::send.mail")
-      default_args <- list(subject = logr[,paste0("logR detects ",status," in call",if(!is.na(tag)) paste(" tagged as:",trunc_char(tag)) else paste(":",trunc_char(call)))],
-                           body = logr[,paste0("Hello logR support,\n\nProcessing details:\n- process tag:        ",tag,"\n- process call:       ",call,"\n- process start:      ",logr_start,"\n- process end:        ",logr_end,"\n- processing status:  ",status,"\n- condition call:     ",cond_call,"\n- condition message:  ",cond_message,"\n\nHave an easy debugging :)\nlogR")])
-      do.call(mailR::send.mail, args = c(mail_args,default_args[!(names(default_args) %in% names(mail_args))]))
+      if(requireNamespace("mailR",quietly=TRUE)){
+        if(length(mail_args) == 0L) stop("In the logR function when using 'mail' TRUE then also non zero length 'mail_args' must be provided, read ?logR")
+        if(!("smtp" %in% names(mail_args))) stop("Lack of mandatory elements provided in 'mail_args' required to send email. Read ?mailR::send.mail")
+        default_args <- list(subject = logr[,paste0("logR detects ",status," in call",if(!is.na(tag)) paste(" tagged as:",trunc_char(tag)) else paste(":",trunc_char(call)))],
+                             body = logr[,paste0("Hello logR support,\n\nProcessing details:\n- process tag:        ",tag,"\n- process call:       ",call,"\n- process start:      ",logr_start,"\n- process end:        ",logr_end,"\n- processing status:  ",status,"\n- condition call:     ",cond_call,"\n- condition message:  ",cond_message,"\n\nHave an easy debugging :)\nlogR")])
+        do.call(mailR::send.mail, args = c(mail_args,default_args[!(names(default_args) %in% names(mail_args))]))
+      } else {
+        stop("logR cannot send email without mailR package installed.")
+      }
     }
     # raise error/warning
     if(!silent){

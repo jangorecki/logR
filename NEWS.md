@@ -9,12 +9,12 @@
 - [ ] db schema creation
   - [x] h2
   - [ ] sqlserver
-  - [ ] postgres
+  - [x] postgres
   - [ ] oracle
 - [ ] testthat of different scenarios
 - [x] changed dependencies
-- [x] fundamentally rewrite
 - [x] documentation cleanup
+- [x] fundamentally rewrite
 
 
 # logR 1.0.2

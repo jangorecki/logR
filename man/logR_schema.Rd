@@ -32,10 +32,12 @@ if(requireNamespace("RH2",quietly=TRUE)){
   # check if exists
   library(dwtools)
   db("SELECT sequence_name, current_value FROM INFORMATION_SCHEMA.SEQUENCES")
-  db("SELECT table_type, table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_schema != 'INFORMATION_SCHEMA'")
+  db("SELECT table_type, table_name
+      FROM INFORMATION_SCHEMA.TABLES
+      WHERE table_schema != 'INFORMATION_SCHEMA'")
 }
 }
 \seealso{
-\link{schema_sql}
+\link{schema_sql}, \link{logR}
 }
 

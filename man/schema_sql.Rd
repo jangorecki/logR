@@ -25,5 +25,10 @@ schema_sql()[, vendor]
 schema_sql()[, .(sql = names(.SD)), vendor]
 # create view statements for each vendor
 schema_sql()[, create_view, vendor]
+# print scripts for one vendor
+invisible(schema_sql()["sqlserver", cat(paste(.SD,collapse="\\n")), .SDcols=-"vendor"])
+}
+\seealso{
+\link{logR_schema}, \link{logR}
 }
 

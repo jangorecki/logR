@@ -5,9 +5,7 @@
 \title{Query logR data}
 \usage{
 logR_query(.db = getOption("logR.db"), .conn = getOption("logR.conn"),
-  .table = getOption("logR.table"),
-  .db.conns = getOption("dwtools.db.conns"), .wd = getOption("logR.wd",
-  getwd()))
+  .table = getOption("logR.table"), .wd = getOption("logR.wd", getwd()))
 }
 \arguments{
 \item{.db}{logical.}
@@ -15,8 +13,6 @@ logR_query(.db = getOption("logR.db"), .conn = getOption("logR.conn"),
 \item{.conn}{character.}
 
 \item{.table}{character.}
-
-\item{.db.conns}{list of connection defined for \link[dwtools]{db}.}
 
 \item{.wd}{character working directory path to be used when logging to csv file.}
 }
