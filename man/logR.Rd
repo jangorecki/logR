@@ -20,11 +20,11 @@ logR(CALL, tag = NA_character_, in_rows = NA_integer_, silent = TRUE,
 
 \item{mail}{logical if \emph{TRUE} then on warning/error the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.}
 
-\item{mail_args}{list of args which will override the default logR args passed to \code{mailR::send.mail}, should at least contains \emph{to, from, smtp} elements. Default \code{getOption("logR.mail_args",NULL)}.}
+\item{mail_args}{list of args which will overwrite the default logR args passed to \code{mailR::send.mail}, should at least contains \emph{to, from, smtp} elements. Default \code{getOption("logR.mail_args",NULL)}.}
 
 \item{.db}{logical, when \emph{FALSE} then function will write log to csv file instead of database. Default to \code{getOption("logR.db",FALSE)}.}
 
-\item{.conn}{character database connection name defined for \link{db} function. Default to \code{options("logR.conn",NULL)}.}
+\item{.conn}{character database connection name defined for \link[dwtools]{db} function. Default to \code{options("logR.conn",NULL)}.}
 
 \item{.table}{character scalar, location in database to store logs, default \code{getOptions("logR.table")}.}
 

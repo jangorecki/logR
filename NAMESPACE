@@ -2,6 +2,7 @@
 
 export(logR)
 export(logR_browser)
+export(logR_query)
 export(logR_schema)
 export(schema_sql)
 export(tryCatch_we)
