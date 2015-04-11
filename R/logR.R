@@ -11,7 +11,7 @@ deparse_to_char <- function(expr){
 
 trunc_char <- function(x, n = 33L){
   if(is.na(x)) return(NA_character_)
-  if(nchar(x) > n) return(paste0(substr(x,1,n),"..."))
+  if(nchar(x) > n+3L) return(paste0(substr(x,1,n),"..."))
   return(x)
 }
 
@@ -89,7 +89,7 @@ update_make_set <- function(col, x){
 #' \item \strong{view} - query sequence, it isolates various SQL \code{.nextval} calls on the database side
 #' \item \strong{table} - place to store logs
 #' }
-#' You can create all three objects automatically using \link{logR_schema} function, it works for \emph{h2, sql server, postgres, oracle} databases. For other databases you can adjust scripts from \code{schema_sql()}.
+#' You can create all three objects automatically using \link{logR_schema} function, it works for \emph{h2, sql server, postgres, oracle} databases. For other databases you can adjust scripts from \link{schema_sql}.
 #' View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}. Default name of log table is \code{getOption("logR.table","LOGR")}.
 #' Due to various supported database interfaces it is recommended to set maximum value of the sequence to \code{.Machine$integer.max} which is \emph{2147483647}.
 #' @section Fatal errors:
