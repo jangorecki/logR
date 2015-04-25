@@ -5,7 +5,8 @@ Extended logging solution:
 - [x] transactional logging: insert log, evaluate call, update log.
 - [x] warnings and error catching.
 - [x] log process metadata: in/our nrow, tags.
-- [x] logging to any DBI, JDBC, ODBC database supported by `dwtools::db`.
+- [x] log to DBI, JDBC, ODBC database supported by `dwtools::db`.
+- [ ] log to *SEQUENCE* or *INSERT RETURNING* supporing db.
 - [x] email notification on warnings/error.
 - [x] support parallel processing.
 - [x] shiny app web UI to browse logs.

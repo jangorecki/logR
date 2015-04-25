@@ -4,6 +4,7 @@
 - [x] transactional logging: insert, eval, update
 - [ ] supports `insert returning` databases
 - [x] supports `sequence` databases
+- [ ] more dependency required manual unit tests
 - [x] logging to databases using DBI, RJDBC, RODBC
 - [x] suppport for logging to csv
 - [x] shinyApp to browse logs
