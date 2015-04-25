@@ -1,12 +1,10 @@
-#' @title logR schema sql scripts dictionary
+#' @title logR schema scripts dictionary
 #' @param table character table name for log storing.
 #' @param seq_view character name of view which will query sequence.
 #' @note You can PR new database scripts.
 #' @seealso \link{logR_schema}, \link{logR}
 #' @export
 #' @examples
-#' # available vendors
-#' schema_sql()[, vendor]
 #' # scripts for each vendor
 #' schema_sql()[, .(sql = names(.SD)), vendor]
 #' # create view statements for each vendor
@@ -16,13 +14,13 @@
 schema_sql <- function(table = getOption("logR.table"), seq_view = getOption("logR.seq_view")){
   data.table(vendor = c("h2","sqlserver","postgres","oracle"),
              create_seq = c("CREATE SEQUENCE SEQ_LOGR_ID MINVALUE 1 MAXVALUE 2147483647;",
+                            NA_character_,
                             "CREATE SEQUENCE SEQ_LOGR_ID MINVALUE 1 MAXVALUE 2147483647;",
-                            "CREATE SEQUENCE SEQ_LOGR_ID MINVALUE 1 MAXVALUE 2147483647;",
-                            "CREATE SEQUENCE SEQ_LOGR_ID MINVALUE 1 MAXVALUE 2147483647;"),
+                            NA_character_),
              create_view = c(paste("CREATE VIEW",seq_view,"AS SELECT SEQ_LOGR_ID.nextval AS logr_id FROM DUAL;"), # h2
-                             paste("CREATE VIEW",seq_view,"AS SELECT NEXT VALUE FOR SEQ_LOGR_ID AS logr_id;"), # sqlserver
+                             NA_character_, # sqlserver
                              paste("CREATE VIEW",seq_view,"AS SELECT nextval('SEQ_LOGR_ID') AS logr_id;"), # postgres
-                             paste("CREATE VIEW",seq_view,"AS SELECT SEQ_LOGR_ID.nextval AS logr_id FROM DUAL;")), # oracle
+                             NA_character_), # oracle
              create_logr = c(paste('CREATE TABLE',table,'(
                                    "logr_id" INTEGER PRIMARY KEY,
                                    "logr_start_int" INTEGER,
@@ -134,4 +132,8 @@ logR_schema <- function(vendor = c("h2","sqlserver","postgres","oracle"), conn.n
   schema_sql()[vendor, lapply(.SD,db,.conn), .SDcols=c("create_seq","create_view","create_logr")]
   
   invisible(TRUE)
+}
+
+insert.returning.psql <- function(ins.tab, ins.col, ins.val){
+  paste0(paste(c(ins.tab,ins.col,ins.val,"RETURNING logr_id"), collapse=" "), ";")
 }

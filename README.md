@@ -16,12 +16,13 @@ Extended logging solution:
 
 ```r
 library(devtools)
+if(!require("dwtools", quietly=TRUE)) install_github("jangorecki/dwtools")
 install_github("jangorecki/logR")
 ```
 
 ## Usage
 
-See [How to use logR](https://rawgit.com/jangorecki/ed9a4d9f7dbc77229746/raw/db0aade428ee500a986525474ea8385328852076/logR.html) vignette.
+See [How to use logR](https://rawgit.com/jangorecki/ed9a4d9f7dbc77229746/raw/cd44c0d2e396d18ff8c0b158f550b6ef7a744a5b/logR.html) vignette.
 
 ```r
 library(logR)

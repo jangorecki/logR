@@ -33,7 +33,7 @@ options("dwtools.db.conns" = list(h2=h2),
 
 We defined single database connection, we set logR to use database and to use connection named *h2*.  
 For the first time we need to create database objects which are required for logR processing: **sequence**, **view** and a **table**.  
-Function `logR_schema()` will handle creation of those objects for some databases, you can get plain sql scripts from `schema_sql()` function and adjust it to your database. If your database does not support sequences you may need to simulate a sequence behind the view.
+Function `logR_schema()` will handle creation of those objects for some databases, you can get plain schema scripts from `schema_sql()` function and adjust it to your database. If your database does not support sequences you may need to simulate a sequence behind the view.
 
 ```{r schema}
 logR_schema(vendor = "h2")

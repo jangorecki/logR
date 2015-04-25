@@ -158,12 +158,15 @@ logR <- function(CALL,
   CALLenv <- parent.frame()
   .logr_start <- Sys.time()
   
-  # get logr_id from sequence
+  # decide if to use sequence or insert returning by option
+  ins.ret <- getOption("logR.insert.returning")
+  do.ins.ret <- is.function(ins.ret)
+  # start logging table
   if(.db){
-    # view to query sequence ID, using view to be db vendor independent, set view to query from sequence according to your db vendor
-    logr <- db(paste("SELECT logr_id FROM",getOption("logR.seq_view")))
-  } else{
-    logr <- data.table(logr_id = NA_integer_)
+    if(!do.ins.ret) logr <- db(paste("SELECT logr_id FROM",getOption("logR.seq_view"))) # view to query sequence ID, using view to be db vendor independent, set view to query from sequence according to your db vendor
+    else if(do.ins.ret) logr <- data.table(logr_id = NA_integer_) # will be updated later
+  } else if(!.db){
+    logr <- data.table(logr_id = as.integer(Sys.time()))
   }
   # set meta on start
   logr[,`:=`(logr_start_int = as.integer(.logr_start),
@@ -182,9 +185,20 @@ logR <- function(CALL,
   
   # insert db logr entry
   if(.db){
-    vals <- paste(vapply(names(logr),sql_val,NA_character_,logr),collapse=",")
-    ins <- paste("INSERT INTO",.table,paste0("(",paste(names(logr),collapse=","),")"),"VALUES",paste0("(",vals,");"))
-    db(ins, .conn)
+    ins.tab <- paste("INSERT INTO", .table)
+    ins.col <- paste0("(",paste(names(logr), collapse=","),")")
+    ins.val <- paste("VALUES",paste0("(",paste(vapply(names(logr),sql_val,NA_character_,logr), collapse=","),")"))
+    if(do.ins.ret){
+      ins <- do.call(ins.ret, args = list(ins.tab, ins.col, ins.val))
+    } # use do.ins.ret
+    else if(!do.ins.ret){
+      ins <- paste0(paste(c(ins.tab,ins.col,ins.val), collapse=" "), ";")
+    } # use sequence
+    r <- db(ins, .conn)
+    if(do.ins.ret){
+      if(!(is.data.table(r) && nrow(r))) stop("INSERT RETURNING did not work, should returns logr_id field.")
+      set(logr, i=1L, j=1L, value=as.integer(r[["logr_id"]]))
+    }
   }
   
   # evaluate with timing and error/warning catch

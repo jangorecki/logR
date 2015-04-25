@@ -1,8 +1,9 @@
-# logR 2.0
+# logR 1.9.9
 
 - [x] how to use vignette
 - [x] transactional logging: insert, eval, update
-- [x] requires sequence in database
+- [ ] supports `insert returning` databases
+- [x] supports `sequence` databases
 - [x] logging to databases using DBI, RJDBC, RODBC
 - [x] suppport for logging to csv
 - [x] shinyApp to browse logs
