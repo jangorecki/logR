@@ -40,6 +40,7 @@ tryCatch_we <- function(expr){
 #' @param x data.table a one row data.table.
 #' @param trunc_char_n integer number of characters to truncate character after. Default 252, \emph{...} is added to the end of string so the result will have 255 characters.
 #' @return character vector
+#' @export
 sql_val <- function(col, x, trunc_char_n = 252L){
   if(is.na(x[[col]])){
     val <- "NULL"
@@ -185,20 +186,26 @@ logR <- function(CALL,
   
   # insert db logr entry
   if(.db){
-    ins.tab <- paste("INSERT INTO", .table)
-    ins.col <- paste0("(",paste(names(logr), collapse=","),")")
-    ins.val <- paste("VALUES",paste0("(",paste(vapply(names(logr),sql_val,NA_character_,logr), collapse=","),")"))
     if(do.ins.ret){
-      ins <- do.call(ins.ret, args = list(ins.tab, ins.col, ins.val))
+      ins <- do.call(ins.ret, args = list(table = .table, logr = logr))
     } # use do.ins.ret
     else if(!do.ins.ret){
+      ins.tab <- paste("INSERT INTO", .table)
+      ins.col <- paste0("(",paste(names(logr), collapse=","),")")
+      ins.val <- paste("VALUES",paste0("(",paste(vapply(names(logr),sql_val,NA_character_,logr), collapse=","),")"))
       ins <- paste0(paste(c(ins.tab,ins.col,ins.val), collapse=" "), ";")
     } # use sequence
-    r <- db(ins, .conn)
+    r <- db(ins, .conn) # fire insert
     if(do.ins.ret){
+      r <- switch(getOption("logR.insert.driver"),
+                  "DBI" = DBI::dbFetch(r),
+                  "RODBC" = RODBC::sqlGetResults(channel = getOption("dwtools.db.conns")[[.conn]][["conn"]]),
+                  "RJDBC" = RJDBC::fetch(r),
+                  stop("To use 'insert returning' besides of options('logR.insert.returning') you need also provide options('logR.insert.driver') as one of c('DBI','RODBC','RJDBC')."))
+      setDT(r)
       if(!(is.data.table(r) && nrow(r))) stop("INSERT RETURNING did not work, should returns logr_id field.")
       set(logr, i=1L, j=1L, value=as.integer(r[["logr_id"]]))
-    }
+    } # update returning id
   }
   
   # evaluate with timing and error/warning catch

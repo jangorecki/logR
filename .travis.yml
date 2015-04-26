@@ -2,6 +2,7 @@ language: r
 
 apt_packages:
  - r-cran-rjava
+ - r-cran-rodbc
 
 r_packages:
  - testthat

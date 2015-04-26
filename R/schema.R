@@ -133,7 +133,3 @@ logR_schema <- function(vendor = c("h2","sqlserver","postgres","oracle"), conn.n
   
   invisible(TRUE)
 }
-
-insert.returning.psql <- function(ins.tab, ins.col, ins.val){
-  paste0(paste(c(ins.tab,ins.col,ins.val,"RETURNING logr_id"), collapse=" "), ";")
-}

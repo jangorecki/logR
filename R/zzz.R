@@ -11,5 +11,6 @@
   options("logR.wd" = NULL)
   options("logR.silent" = TRUE)
   options("logR.insert.returning" = NULL) # user provided function(ins.tab, ins.col, ins.val), see psql example: logR:::insert.returning.psql
+  options("logR.insert.driver" = NULL) # required for dbFetch / sqlGetResults
   
 }
