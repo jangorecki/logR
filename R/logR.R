@@ -150,7 +150,7 @@ logR <- function(CALL,
   
   .db <- as.logical(.db)
   if(.db){
-    if(class(.conn)=="H2Connection") dbSendQuery <- RJDBC::dbSendUpdate # remove after RH2#3
+    if(class(.conn)[1L]=="H2Connection") dbSendQuery <- RJDBC::dbSendUpdate # remove after RH2#3
     #if(!dbIsValid(.conn)) stop("Provided connection in 'logR.conn' option or '.conn' argument is not valid. Provide valid DBI connection.") # uncomment after: RH2#2
   }
   mail <- as.logical(mail)
