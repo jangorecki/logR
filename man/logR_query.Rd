@@ -10,7 +10,7 @@ logR_query(.db = getOption("logR.db"), .conn = getOption("logR.conn"),
 \arguments{
 \item{.db}{logical.}
 
-\item{.conn}{character.}
+\item{.conn}{DBI connection.}
 
 \item{.table}{character.}
 

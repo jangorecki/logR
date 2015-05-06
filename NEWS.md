@@ -1,18 +1,25 @@
+# logR 1.9.9.5
+
+- [x] DBI db support only, dwtools dependency remove
+- [x] CRAN-ready, no more gh only deps
+- [ ] db schema creation
+  - [ ] sqlserver
+  - [ ] oracle
+- [ ] more dependency required manual unit tests
+
+
 # logR 1.9.9
 
 - [x] how to use vignette
 - [x] transactional logging: insert, eval, update
-- [ ] supports `insert returning` databases
+- [x] supports `insert returning` databases
 - [x] supports `sequence` databases
-- [ ] more dependency required manual unit tests
 - [x] logging to databases using DBI, RJDBC, RODBC
 - [x] suppport for logging to csv
 - [x] shinyApp to browse logs
-- [ ] db schema creation
+- [x] db schema creation
   - [x] h2
-  - [ ] sqlserver
   - [x] postgres
-  - [ ] oracle
 - [x] testthat of different scenarios
 - [x] changed dependencies
 - [x] documentation cleanup

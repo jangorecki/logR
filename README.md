@@ -5,19 +5,18 @@ Extended logging solution:
 - [x] transactional logging: insert log, evaluate call, update log.
 - [x] warnings and error catching.
 - [x] log process metadata: in/our nrow, tags.
-- [x] log to DBI, JDBC, ODBC database supported by `dwtools::db`.
-- [ ] log to *SEQUENCE* or *INSERT RETURNING* supporing db.
+- [x] log to DBI supported database.
+- [ ] requires *SEQUENCE* or *INSERT RETURNING* database features.
 - [x] email notification on warnings/error.
 - [x] support parallel processing.
 - [x] shiny app web UI to browse logs.
 
-**Current version:** [1.9.9](NEWS.md)
+**Current version:** [1.9.9.5](NEWS.md)
 
 ## Installation
 
 ```r
 library(devtools)
-if(!require("dwtools", quietly=TRUE)) install_github("jangorecki/dwtools")
 install_github("jangorecki/logR")
 ```
 

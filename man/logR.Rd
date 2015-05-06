@@ -25,9 +25,9 @@ logR(CALL, tag = NA_character_, in_rows = NA_integer_,
 
 \item{.db}{logical, when \emph{FALSE} then function will write log to csv file instead of database. Default to \code{getOption("logR.db",FALSE)}.}
 
-\item{.conn}{character database connection name defined for \link[dwtools]{db} function. Default to \code{options("logR.conn",NULL)}.}
+\item{.conn}{DBI connection. Default to \code{getOption("logR.conn",NULL)}.}
 
-\item{.table}{character scalar, location in database to store logs, default \code{getOptions("logR.table")}.}
+\item{.table}{character scalar, location in database to store logs, default \code{getOption("logR.table")}.}
 
 \item{.log}{logical escape parameter, set to \emph{FALSE} to suppress logR process and just execute a call, default to \code{getOption("logR.log",TRUE)}.}
 }
@@ -35,21 +35,21 @@ logR(CALL, tag = NA_character_, in_rows = NA_integer_,
 Result of evaluated \emph{CALL}.
 }
 \description{
-Complete logging solution. Writes to database the process metadata before evaluation, and updates the status after completion. Evalutes with timing, catch warning/error, email on warning/errors, log processing details: in/out rows, custom metadata, warning/error messages.
+Complete logging solution. Writes to database call metadata before its evaluation. Evalutes with timing and warning/error catching. Updates database entry for processing details: in/out rows, custom metadata, warning/error messages. Email on warning/errors.
 }
 \note{
-You may expect some silent data types conversion when writing to database, exactly the same as you would use DBI, RODBC, RJDBC packages. Only first warning will be logged to database and send on email.
+You may expect some silent data types conversion when writing to database, exactly the same directly using DBI. Only first warning will be logged to database and send on email.
 }
 \section{Side effects}{
 
 \itemize{
-\item for default \emph{.db} \emph{TRUE} and \emph{.conn} character name of defined db connection - the entry in table \emph{.table}.
+\item for default \emph{.db} \emph{TRUE} and \emph{.conn} db connection - the entry in table \emph{.table}.
 \item for \emph{.db} \emph{FALSE} - the entry in \emph{.table} csv file in working directory.
 \item in case of warnings or error and \emph{mail} set to \emph{TRUE} also the email will be send according to \emph{mail_args}.
 }
 }
 
-\section{Database setup}{
+\section{Database setup using SEQUENCE}{
 
 Logging process requires 3 database objects:
 \itemize{
@@ -60,6 +60,11 @@ Logging process requires 3 database objects:
 You can create all three objects automatically using \link{logR_schema} function, it works for \emph{h2, sql server, postgres, oracle} databases. For other databases you can adjust scripts from \link{schema_sql}.
 View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}. Default name of log table is \code{getOption("logR.table","LOGR")}.
 Due to various supported database interfaces it is recommended to set maximum value of the sequence to \code{.Machine$integer.max} which is \emph{2147483647}.
+}
+
+\section{Database setup using INSERT RETURNING}{
+
+TO DO
 }
 
 \section{Fatal errors}{
@@ -84,10 +89,8 @@ file.remove("LOGR.csv")
 
 # log to H2 database
 library(RH2)
-h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
-options("dwtools.db.conns" = list(h2=h2),
-        "logR.db" = TRUE,
-        "logR.conn" = "h2")
+options("logR.db" = TRUE,
+        "logR.conn" = dbConnect(H2(), "jdbc:h2:mem:"))
 logR_schema("h2")
 dfr <- logR(with(df, aggregate(a, list(b), sum)), in_rows=nrow(df))
 dtr <- logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt))
@@ -95,6 +98,7 @@ err <- logR(sum(1,"a"))
 war <- logR(cor(c(1,1),c(2,3)))
 logR_query()
 options("logR.db" = FALSE)
+dbDisconnect(getOption("logR.conn"))
 }
 \references{
 \url{https://github.com/rpremraj/mailR}

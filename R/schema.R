@@ -5,6 +5,7 @@
 #' @seealso \link{logR_schema}, \link{logR}
 #' @export
 #' @examples
+#' library(data.table)
 #' # scripts for each vendor
 #' schema_sql()[, .(sql = names(.SD)), vendor]
 #' # create view statements for each vendor
@@ -91,45 +92,41 @@ schema_sql <- function(table = getOption("logR.table"), seq_view = getOption("lo
 #' @title Populate logR schema
 #' @description There are three database objects required, all are populated by this function call. To view scripts see \link{schema_sql}.
 #' @param vendor character, currently supported \code{c("h2","sqlserver","postgres","oracle")}.
-#' @param conn.name character name of defined db connection. See examples.
+#' @param .conn DBI connection.
 #' @param drop logical, try drop before creation.
 #' @seealso \link{schema_sql}, \link{logR}
 #' @export
 #' @examples
-#' if(requireNamespace("RH2",quietly=TRUE)){
+#' if(requireNamespace("RH2", quietly=TRUE)){
 #'   library(RH2)
-#'   # define connection
-#'   h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
 #'   # setup options and connection
-#'   opts <- options("dwtools.db.conns"=list(h2=h2),
-#'                   "logR.db" = TRUE,
-#'                   "logR.conn" = "h2")
+#'   opts <- options("logR.db" = TRUE,
+#'                   "logR.conn" = dbConnect(H2(), "jdbc:h2:mem:"))
 #'   # run build schema scripts
 #'   logR_schema(vendor = "h2")
 #'   
 #'   # check if exists
-#'   library(dwtools)
-#'   db("SELECT sequence_name, current_value FROM INFORMATION_SCHEMA.SEQUENCES")
-#'   db("SELECT table_type, table_name
-#'       FROM INFORMATION_SCHEMA.TABLES
-#'       WHERE table_schema != 'INFORMATION_SCHEMA'")
+#'   dbGetQuery(getOption("logR.conn"),
+#'              "SELECT sequence_name, current_value FROM INFORMATION_SCHEMA.SEQUENCES")
+#'   dbGetQuery(getOption("logR.conn"),
+#'              "SELECT table_type, table_name 
+#'               FROM INFORMATION_SCHEMA.TABLES 
+#'               WHERE table_schema != 'INFORMATION_SCHEMA'")
+#'  dbDisconnect(getOption("logR.conn"))
 #' }
-logR_schema <- function(vendor = c("h2","sqlserver","postgres","oracle"), conn.name = getOption("logR.conn"), drop = FALSE){
-  if(is.null(conn.name)) stop("You must provide connection name for database.")
-  .conn <- conn.name
-  .db.conns <- names(getOption("dwtools.db.conns"))
-  if(!(.conn %in% .db.conns)) stop("Provided database connection name in 'conn.name' was not set up in getOption('dwtools.db.conns'). Read ?logR or ?dwtools::db")
+logR_schema <- function(vendor = c("h2","sqlserver","postgres","oracle"), .conn = getOption("logR.conn"), drop = FALSE){
+  # if(!dbIsValid(.conn)) stop("You must provide valid connection for database.") # uncomment after RH2#2
   stopifnot(length(vendor) == 1L, vendor %in% c("h2","sqlserver","postgres","oracle"))
-  
+  if(class(.conn)=="H2Connection") dbSendQuery <- RJDBC::dbSendUpdate # remove after RH2#3
   if(isTRUE(drop)){
     table <- getOption("logR.table")
     seq_view <- getOption("logR.seq_view")
-    try(db(paste0("DROP TABLE ",table,";"),.conn), silent = TRUE)
-    try(db(paste0("DROP VIEW ",seq_view,";"),.conn), silent = TRUE)
-    try(db("DROP SEQUENCE SEQ_LOGR_ID;",.conn), silent = TRUE)
+    try(dbSendQuery(.conn, paste0("DROP TABLE ",table,";")), silent = TRUE)
+    try(dbSendQuery(.conn, paste0("DROP VIEW ",seq_view,";")), silent = TRUE)
+    try(dbSendQuery(.conn, "DROP SEQUENCE SEQ_LOGR_ID;"), silent = TRUE)
   }
   
-  schema_sql()[vendor, lapply(.SD,db,.conn), .SDcols=c("create_seq","create_view","create_logr")]
+  schema_sql()[vendor, lapply(.SD, function(sql, .conn) dbSendQuery(.conn, sql), .conn = .conn), .SDcols=c("create_seq","create_view","create_logr")]
   
   invisible(TRUE)
 }

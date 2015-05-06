@@ -1,6 +1,6 @@
 #' @title logR-package
 #' @docType package
-#' @import data.table dwtools
+#' @import data.table DBI
 #' @author Jan Gorecki
 #' @name logR-package
 NULL
@@ -64,7 +64,7 @@ update_make_set <- function(col, x){
 }
 
 #' @title Detailed logging of R call
-#' @description Complete logging solution. Writes to database the process metadata before evaluation, and updates the status after completion. Evalutes with timing, catch warning/error, email on warning/errors, log processing details: in/out rows, custom metadata, warning/error messages.
+#' @description Complete logging solution. Writes to database call metadata before its evaluation. Evalutes with timing and warning/error catching. Updates database entry for processing details: in/out rows, custom metadata, warning/error messages. Email on warning/errors.
 #' @param CALL call to be evaluted with logging.
 #' @param tag character, custom metadata to be attached to log entry.
 #' @param in_rows integer input DF/DT nrow, \emph{logR} can only guess \emph{out_rows}.
@@ -72,18 +72,18 @@ update_make_set <- function(col, x){
 #' @param mail logical if \emph{TRUE} then on warning/error the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.
 #' @param mail_args list of args which will overwrite the default logR args passed to \code{mailR::send.mail}, should at least contains \emph{to, from, smtp} elements. Default \code{getOption("logR.mail_args",NULL)}. See references for mail configuration.
 #' @param .db logical, when \emph{FALSE} then function will write log to csv file instead of database. Default to \code{getOption("logR.db",FALSE)}.
-#' @param .conn character database connection name defined for \link[dwtools]{db} function. Default to \code{options("logR.conn",NULL)}.
-#' @param .table character scalar, location in database to store logs, default \code{getOptions("logR.table")}.
+#' @param .conn DBI connection. Default to \code{getOption("logR.conn",NULL)}.
+#' @param .table character scalar, location in database to store logs, default \code{getOption("logR.table")}.
 #' @param .log logical escape parameter, set to \emph{FALSE} to suppress logR process and just execute a call, default to \code{getOption("logR.log",TRUE)}.
 #' @return Result of evaluated \emph{CALL}.
-#' @note You may expect some silent data types conversion when writing to database, exactly the same as you would use DBI, RODBC, RJDBC packages. Only first warning will be logged to database and send on email.
+#' @note You may expect some silent data types conversion when writing to database, exactly the same directly using DBI. Only first warning will be logged to database and send on email.
 #' @section Side effects:
 #' \itemize{
-#' \item for default \emph{.db} \emph{TRUE} and \emph{.conn} character name of defined db connection - the entry in table \emph{.table}.
+#' \item for default \emph{.db} \emph{TRUE} and \emph{.conn} db connection - the entry in table \emph{.table}.
 #' \item for \emph{.db} \emph{FALSE} - the entry in \emph{.table} csv file in working directory.
 #' \item in case of warnings or error and \emph{mail} set to \emph{TRUE} also the email will be send according to \emph{mail_args}.
 #' }
-#' @section Database setup:
+#' @section Database setup using SEQUENCE:
 #' Logging process requires 3 database objects:
 #' \itemize{
 #' \item \strong{sequence} - required for transactional logging
@@ -93,6 +93,8 @@ update_make_set <- function(col, x){
 #' You can create all three objects automatically using \link{logR_schema} function, it works for \emph{h2, sql server, postgres, oracle} databases. For other databases you can adjust scripts from \link{schema_sql}.
 #' View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}. Default name of log table is \code{getOption("logR.table","LOGR")}.
 #' Due to various supported database interfaces it is recommended to set maximum value of the sequence to \code{.Machine$integer.max} which is \emph{2147483647}.
+#' @section Database setup using INSERT RETURNING:
+#' TO DO
 #' @section Fatal errors:
 #' If your R function will manage to kill whole R session you will see that \emph{status} entry in log table will not get updated and it will stay as \emph{NA}.
 #' It might be worth to schedule a watcher task to detect such cases, see \emph{How to use logR} vignette.
@@ -116,10 +118,8 @@ update_make_set <- function(col, x){
 #' 
 #' # log to H2 database
 #' library(RH2)
-#' h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
-#' options("dwtools.db.conns" = list(h2=h2),
-#'         "logR.db" = TRUE,
-#'         "logR.conn" = "h2")
+#' options("logR.db" = TRUE,
+#'         "logR.conn" = dbConnect(H2(), "jdbc:h2:mem:"))
 #' logR_schema("h2")
 #' dfr <- logR(with(df, aggregate(a, list(b), sum)), in_rows=nrow(df))
 #' dtr <- logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt))
@@ -127,6 +127,7 @@ update_make_set <- function(col, x){
 #' war <- logR(cor(c(1,1),c(2,3)))
 #' logR_query()
 #' options("logR.db" = FALSE)
+#' dbDisconnect(getOption("logR.conn"))
 logR <- function(CALL,
                  tag = NA_character_, 
                  in_rows = NA_integer_,
@@ -149,8 +150,8 @@ logR <- function(CALL,
   
   .db <- as.logical(.db)
   if(.db){
-    .db.conns <- names(getOption("dwtools.db.conns"))
-    if(!(.conn %in% .db.conns)) stop("Provided database connection name in '.conn' was not set up in getOption('dwtools.db.conns'). Read ?dwtools::db how to define setup db connections.")
+    if(class(.conn)=="H2Connection") dbSendQuery <- RJDBC::dbSendUpdate # remove after RH2#3
+    #if(!dbIsValid(.conn)) stop("Provided connection in 'logR.conn' option or '.conn' argument is not valid. Provide valid DBI connection.") # uncomment after: RH2#2
   }
   mail <- as.logical(mail)
   silent <- as.logical(silent)
@@ -164,10 +165,10 @@ logR <- function(CALL,
   do.ins.ret <- is.function(ins.ret)
   # start logging table
   if(.db){
-    if(!do.ins.ret) logr <- db(paste("SELECT logr_id FROM",getOption("logR.seq_view"))) # view to query sequence ID, using view to be db vendor independent, set view to query from sequence according to your db vendor
-    else if(do.ins.ret) logr <- data.table(logr_id = NA_integer_) # will be updated later
+    if(!do.ins.ret) logr <- setDT(dbGetQuery(.conn, paste("SELECT logr_id FROM",getOption("logR.seq_view")))) # view to query sequence ID, using view to be db vendor independent, set view to query from sequence according to your db vendor
+    else if(do.ins.ret) logr <- data.table(logr_id = NA_integer_) # will be updated later on insert
   } else if(!.db){
-    logr <- data.table(logr_id = as.integer(Sys.time()))
+    logr <- data.table(logr_id = NA_integer_)
   }
   # set meta on start
   logr[,`:=`(logr_start_int = as.integer(.logr_start),
@@ -188,30 +189,24 @@ logR <- function(CALL,
   if(.db){
     if(do.ins.ret){
       ins <- do.call(ins.ret, args = list(table = .table, logr = logr))
-    } # use do.ins.ret
+      r <- dbGetQuery(.conn, ins) # fire insert
+      setDT(r)
+      if(!(is.data.table(r) && nrow(r))) stop("INSERT RETURNING did not work, should returns logr_id field.")
+      set(logr, i=1L, j=1L, value=as.integer(r[["logr_id"]]))
+    } # use do.ins.ret, update returning id
     else if(!do.ins.ret){
       ins.tab <- paste("INSERT INTO", .table)
       ins.col <- paste0("(",paste(names(logr), collapse=","),")")
       ins.val <- paste("VALUES",paste0("(",paste(vapply(names(logr),sql_val,NA_character_,logr), collapse=","),")"))
       ins <- paste0(paste(c(ins.tab,ins.col,ins.val), collapse=" "), ";")
+      r <- dbSendQuery(.conn, ins) # fire insert
     } # use sequence
-    r <- db(ins, .conn) # fire insert
-    if(do.ins.ret){
-      r <- switch(getOption("logR.insert.driver"),
-                  "DBI" = DBI::dbFetch(r),
-                  "RODBC" = RODBC::sqlGetResults(channel = getOption("dwtools.db.conns")[[.conn]][["conn"]]),
-                  "RJDBC" = RJDBC::fetch(r),
-                  stop("To use 'insert returning' besides of options('logR.insert.returning') you need also provide options('logR.insert.driver') as one of c('DBI','RODBC','RJDBC')."))
-      setDT(r)
-      if(!(is.data.table(r) && nrow(r))) stop("INSERT RETURNING did not work, should returns logr_id field.")
-      set(logr, i=1L, j=1L, value=as.integer(r[["logr_id"]]))
-    } # update returning id
   }
   
   # evaluate with timing and error/warning catch
   done <- FALSE
   if(isTRUE(getOption("logR.nano"))){
-    if(requireNamespace("microbenchmark",quietly=TRUE)){
+    if(requireNamespace("microbenchmark", quietly=TRUE)){
       ts <- microbenchmark::get_nanotime()
       r <- tryCatch_we(expr = eval(subCALL, envir = CALLenv))
       elapsed <- (microbenchmark::get_nanotime() - ts) * 1e-9
@@ -252,7 +247,7 @@ logR <- function(CALL,
     cols_to_upd <- c("status","logr_end_int","logr_end","timing","out_rows","cond_call","cond_message")
     upd_set <- vapply(cols_to_upd,update_make_set,NA_character_,logr)
     sql <- paste0("UPDATE ",.table," SET ",paste(upd_set,collapse=",")," WHERE logr_id = ",format(logr[["logr_id"]],scientific = FALSE),";")
-    upd <- db(sql, .conn)
+    upd <- dbSendQuery(.conn, sql)
   } else {
     # write csv log
     log_file <- paste(.table,"csv",sep=".")

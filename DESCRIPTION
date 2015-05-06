@@ -1,23 +1,21 @@
 Package: logR
 Type: Package
-Title: Log R processes
-Version: 1.9.9
-Date: 2015-04-26
+Title: Log R Calls
+Version: 1.9.9.5
+Date: 2015-05-06
 Author: Jan Gorecki
 Maintainer: Jan Gorecki <J.Gorecki@wit.edu.pl>
-Description: Complete logging solution. Writes to database the process metadata before evaluation, and updates the status after completion. Evalutes with timing, catch warning/error, email on warning/errors, log processing details: in/out rows, custom metadata, warning/error messages.
+Description: Complete logging solution. Writes to database call metadata before its evaluation. Evalutes with timing and warning/error catching. Updates database entry for processing details: in/out rows, custom metadata, warning/error messages. Email on warning/errors.
 URL: https://github.com/jangorecki/logR
 License: GPL-3
 Imports:
     data.table (>= 1.9.5),
-    dwtools (>= 0.8.3.6)
+    DBI
 Suggests:
     testthat,
     microbenchmark,
     mailR,
     shiny,
-    DBI,
-    RODBC,
     RJDBC,
     RH2,
     knitr

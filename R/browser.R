@@ -1,7 +1,7 @@
 #' @title Query logR data
 #' @description Query logR logs from defined database or csv file.
 #' @param .db logical.
-#' @param .conn character.
+#' @param .conn DBI connection.
 #' @param .table character.
 #' @param .wd character working directory path to be used when logging to csv file.
 #' @details By default all function arguments will be taken from options which are used to setup logR logging, for arguments description see \link{logR}.
@@ -18,13 +18,10 @@ logR_query <- function(.db = getOption("logR.db"), .conn = getOption("logR.conn"
     if(!file.exists(log_file)) stop("logR is set to log into csv file but there is no no csv file in working directory.")
   }
   else if(isTRUE(.db)){
-    .db.conns <- names(getOption("dwtools.db.conns"))
-    if(is.null(.conn)) stop("logR is set to log into database but no database connection name defined in 'logR.conn' option.")
-    if(is.null(.db.conns)) stop("logR is set to log into database but no database connections defined in 'dwtools.db.conns' option.")
-    if(!(.conn %in% .db.conns)) stop("logR database connection name is not matching to names of connections defined in 'dwtools.db.conns' option.")
+    # if(!dbIsValid(.conn)) stop("You must provide valid connection for database.") # uncomment after RH2#2
   }
-  logr_id <- logr_start_int <- logr_start <- status <- logr_end_int <- logr_end <- in_rows <- out_rows <- tag <- mail <- cond_call <- cond_message <- NULL
-  dt <- if(!isTRUE(.db)) setDT(read.table(paste(.wd,paste(.table,"csv",sep="."),sep="/"), sep=",", header=TRUE, na.strings=""))[] else db(paste("SELECT * FROM",.table), .conn)
+  logr_id <- logr_start_int <- logr_start <- status <- logr_end_int <- logr_end <- timing <- in_rows <- out_rows <- tag <- mail <- cond_call <- cond_message <- NULL
+  dt <- if(!isTRUE(.db)) setDT(read.table(paste(.wd,paste(.table,"csv",sep="."),sep="/"), sep=",", header=TRUE, na.strings=""))[] else setDT(dbGetQuery(.conn, paste("SELECT * FROM",.table)))
   dt[,`:=`(logr_id = as.integer(logr_id),
            logr_start_int = as.integer(logr_start_int),
            logr_start = as.POSIXct(logr_start, origin="1970-01-01"),
@@ -58,7 +55,7 @@ logR_query <- function(.db = getOption("logR.db"), .conn = getOption("logR.conn"
 #' if(interactive()) logR_browser()
 #' file.remove("LOGR.csv")
 logR_browser <- function(){
-  if(!requireNamespace("shiny",quietly=TRUE)){
+  if(!requireNamespace("shiny", quietly=TRUE)){
     stop("shiny package required to browse logR data")
   } else{
     # options

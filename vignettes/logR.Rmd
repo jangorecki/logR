@@ -20,18 +20,15 @@ knitr::opts_chunk$set(
 
 ## Setting up database
 
-The logR uses databases unification layer served by imported package [dwtools](https://github.com/jangorecki/dwtools). Database connection has to be defined according to `db` function in `dwtools` package. When connections are defined you just need to point the name of connection which will be used for storing logR logs. In the vignette we will use H2 database because it does not require heavy external dependencies. You can also log to csv file instead of database but logging to csv does not support transactional logging.
+The logR uses DBI database interface. In the vignette we will use H2 database because it does not require heavy external dependencies. You can also log to csv file instead of database but logging to csv does not support transactional logging.
 
 ```{r connection, message=FALSE}
 library(logR)
 library(RH2)
-h2 <- list(drvName = "JDBC", conn = dbConnect(H2(), "jdbc:h2:mem:"))
-options("dwtools.db.conns" = list(h2=h2),
-        "logR.db" = TRUE,
-        "logR.conn" = "h2")
+options("logR.db" = TRUE,
+        "logR.conn" = dbConnect(H2(), "jdbc:h2:mem:"))
 ```
 
-We defined single database connection, we set logR to use database and to use connection named *h2*.  
 For the first time we need to create database objects which are required for logR processing: **sequence**, **view** and a **table**.  
 Function `logR_schema()` will handle creation of those objects for some databases, you can get plain schema scripts from `schema_sql()` function and adjust it to your database. If your database does not support sequences you may need to simulate a sequence behind the view.
 
@@ -144,3 +141,7 @@ There are some more customization available not mentioned in the vignette:
 - logging to csv
 
 For more information read `logR` manual by typing `?logR` in R console.
+
+```{r disconnect, echo=FALSE, results='hide'}
+invisible(dbDisconnect(getOption("logR.conn")))
+```
