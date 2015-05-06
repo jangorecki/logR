@@ -19,7 +19,6 @@ logR schema scripts dictionary
 You can PR new database scripts.
 }
 \examples{
-library(data.table)
 # scripts for each vendor
 schema_sql()[, .(sql = names(.SD)), vendor]
 # create view statements for each vendor

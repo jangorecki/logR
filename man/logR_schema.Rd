@@ -18,7 +18,7 @@ logR_schema(vendor = c("h2", "sqlserver", "postgres", "oracle"),
 There are three database objects required, all are populated by this function call. To view scripts see \link{schema_sql}.
 }
 \examples{
-if(requireNamespace("RH2", quietly=TRUE)){
+if(require("RH2", quietly=TRUE)){
   library(RH2)
   # setup options and connection
   opts <- options("logR.db" = TRUE,

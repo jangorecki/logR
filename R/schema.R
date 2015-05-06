@@ -5,7 +5,6 @@
 #' @seealso \link{logR_schema}, \link{logR}
 #' @export
 #' @examples
-#' library(data.table)
 #' # scripts for each vendor
 #' schema_sql()[, .(sql = names(.SD)), vendor]
 #' # create view statements for each vendor
@@ -97,7 +96,7 @@ schema_sql <- function(table = getOption("logR.table"), seq_view = getOption("lo
 #' @seealso \link{schema_sql}, \link{logR}
 #' @export
 #' @examples
-#' if(requireNamespace("RH2", quietly=TRUE)){
+#' if(require("RH2", quietly=TRUE)){
 #'   library(RH2)
 #'   # setup options and connection
 #'   opts <- options("logR.db" = TRUE,

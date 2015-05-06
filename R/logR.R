@@ -102,7 +102,6 @@ update_make_set <- function(col, x){
 #' @references \url{https://github.com/rpremraj/mailR}
 #' @export
 #' @examples
-#' library(data.table)
 #' N <- 1e5
 #' df <- data.frame(a = rnorm(N), b = sample(seq_len(as.integer(log(N))),N,TRUE))
 #' dt <- as.data.table(df)
@@ -117,17 +116,18 @@ update_make_set <- function(col, x){
 #' file.remove("LOGR.csv")
 #' 
 #' # log to H2 database
-#' library(RH2)
-#' options("logR.db" = TRUE,
-#'         "logR.conn" = dbConnect(H2(), "jdbc:h2:mem:"))
-#' logR_schema("h2")
-#' dfr <- logR(with(df, aggregate(a, list(b), sum)), in_rows=nrow(df))
-#' dtr <- logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt))
-#' err <- logR(sum(1,"a"))
-#' war <- logR(cor(c(1,1),c(2,3)))
-#' logR_query()
-#' options("logR.db" = FALSE)
-#' dbDisconnect(getOption("logR.conn"))
+#' if(require("RH2", quietly=TRUE)){
+#'   options("logR.db" = TRUE,
+#'           "logR.conn" = dbConnect(H2(), "jdbc:h2:mem:"))
+#'   logR_schema("h2")
+#'   dfr <- logR(with(df, aggregate(a, list(b), sum)), in_rows=nrow(df))
+#'   dtr <- logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt))
+#'   err <- logR(sum(1,"a"))
+#'   war <- logR(cor(c(1,1),c(2,3)))
+#'   logR_query()
+#'   options("logR.db" = FALSE)
+#'   dbDisconnect(getOption("logR.conn"))
+#' }
 logR <- function(CALL,
                  tag = NA_character_, 
                  in_rows = NA_integer_,

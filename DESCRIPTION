@@ -8,8 +8,9 @@ Maintainer: Jan Gorecki <J.Gorecki@wit.edu.pl>
 Description: Complete logging solution. Writes to database call metadata before its evaluation. Evalutes with timing and warning/error catching. Updates database entry for processing details: in/out rows, custom metadata, warning/error messages. Email on warning/errors.
 URL: https://github.com/jangorecki/logR
 License: GPL-3
+Depends:
+    data.table (>= 1.9.5)
 Imports:
-    data.table (>= 1.9.5),
     DBI
 Suggests:
     testthat,

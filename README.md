@@ -31,8 +31,6 @@ library(logR)
 ?logR
 
 # csv logging example
-library(shiny)
-library(data.table)
 N <- 1e5
 df <- data.frame(a = rnorm(N), b = sample(seq_len(as.integer(log(N))),N,TRUE))
 dt <- as.data.table(df)
@@ -41,6 +39,7 @@ dtr <- logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt))
 err <- logR(sum(1,"a"))
 war <- logR(cor(c(1,1),c(2,3)))
 logR_query()
+library(shiny)
 logR_browser()
 ```
 

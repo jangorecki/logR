@@ -75,7 +75,6 @@ f_wait <- function(x){
 Now we will execute defined function wrapping them in logR function to log their processing details.
 
 ```{r usage_exec}
-library(data.table)
 dt <- data.table(a = rnorm(4), b = 1:2)
 
 logR(f_success(dt))

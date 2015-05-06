@@ -1,8 +1,6 @@
 
 # prepare data and tests --------------------------------------------------
 
-library(data.table)
-library(dwtools)
 library(logR)
 N <- 1e5
 df <- data.frame(a = rnorm(N), b = sample(seq_len(as.integer(log(N))),N,TRUE))
@@ -24,9 +22,8 @@ options("logR.insert.returning" = NULL)
 library(RPostgreSQL)
 psql <- list(drvName="PostgreSQL", host="localhost", port="5432", dbname=dbname, user=user)
 psql$conn <- dbConnect(PostgreSQL(), host=psql$host, port=psql$port, dbname=psql$dbname, user=psql$user, password=password)
-opts <- options("dwtools.db.conns" = list(psql=psql),
-                "logR.db" = TRUE,
-                "logR.conn" = "psql")
+opts <- options("logR.db" = TRUE,
+                "logR.conn" = psql$conn)
 logR_schema("postgres", drop=TRUE)
 do_db_test()
 logR_query()
@@ -44,20 +41,19 @@ options("logR.insert.returning" = insert.returning.postgres,
 library(RPostgreSQL)
 psql <- list(drvName="PostgreSQL", host="localhost", port="5432", dbname=dbname, user=user)
 psql$conn <- dbConnect(PostgreSQL(), host=psql$host, port=psql$port, dbname=psql$dbname, user=psql$user, password=password)
-opts <- options("dwtools.db.conns" = list(psql=psql),
-                "logR.db" = TRUE,
-                "logR.conn" = "psql")
+opts <- options("logR.db" = TRUE,
+                "logR.conn" = psql$conn)
 table <- getOption("logR.table")
 seq_view <- getOption("logR.seq_view")
-try(db(paste0("DROP TABLE ",table,";")), silent = TRUE)
-try(db(paste0("DROP VIEW ",seq_view,";")), silent = TRUE)
-try(db("DROP SEQUENCE SEQ_LOGR_ID;"), silent = TRUE)
+try(dbSendQuery(getOption("logR.conn"), paste0("DROP TABLE ",table,";")), silent = TRUE)
+try(dbSendQuery(getOption("logR.conn"), paste0("DROP VIEW ",seq_view,";")), silent = TRUE)
+try(dbSendQuery(getOption("logR.conn"), "DROP SEQUENCE SEQ_LOGR_ID;"), silent = TRUE)
 
 # create table
 create_logr <- schema_sql()["postgres", create_logr]
 ct <- strsplit(create_logr,"\n",fixed=TRUE)[[1L]]
 ct[2L] <- sub("INTEGER PRIMARY KEY","SERIAL PRIMARY KEY",ct[2L],fixed=TRUE)
-db(paste(ct,collapse="\n"))
+dbSendQuery(getOption("logR.conn"), paste(ct,collapse="\n"))
 
 do_db_test()
 logR_query()
