@@ -151,7 +151,7 @@ logR <- function(CALL,
   .db <- as.logical(.db)
   if(.db){
     if(class(.conn)[1L]=="H2Connection") dbSendQuery <- RJDBC::dbSendUpdate # remove after RH2#3
-    #if(!dbIsValid(.conn)) stop("Provided connection in 'logR.conn' option or '.conn' argument is not valid. Provide valid DBI connection.") # uncomment after: RH2#2
+    else if(!dbIsValid(.conn)) stop("Provided connection in 'logR.conn' option or '.conn' argument is not valid. Provide valid DBI connection.") # remove `else` after: RH2#2
   }
   mail <- as.logical(mail)
   silent <- as.logical(silent)
@@ -189,8 +189,7 @@ logR <- function(CALL,
   if(.db){
     if(do.ins.ret){
       ins <- do.call(ins.ret, args = list(table = .table, logr = logr))
-      r <- dbGetQuery(.conn, ins) # fire insert
-      setDT(r)
+      r <- setDT(dbGetQuery(.conn, ins)) # fire insert
       if(!(is.data.table(r) && nrow(r))) stop("INSERT RETURNING did not work, should returns logr_id field.")
       set(logr, i=1L, j=1L, value=as.integer(r[["logr_id"]]))
     } # use do.ins.ret, update returning id

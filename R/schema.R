@@ -114,9 +114,10 @@ schema_sql <- function(table = getOption("logR.table"), seq_view = getOption("lo
 #'  dbDisconnect(getOption("logR.conn"))
 #' }
 logR_schema <- function(vendor = c("h2","sqlserver","postgres","oracle"), .conn = getOption("logR.conn"), drop = FALSE){
-  # if(!dbIsValid(.conn)) stop("You must provide valid connection for database.") # uncomment after RH2#2
-  stopifnot(length(vendor) == 1L, vendor %in% c("h2","sqlserver","postgres","oracle"))
   if(class(.conn)[1L]=="H2Connection") dbSendQuery <- RJDBC::dbSendUpdate # remove after RH2#3
+  else if(!dbIsValid(.conn)) stop("You must provide valid connection for database.") # remove `else` after RH2#2
+  stopifnot(length(vendor) == 1L, vendor %in% c("h2","sqlserver","postgres","oracle"))
+  
   if(isTRUE(drop)){
     table <- getOption("logR.table")
     seq_view <- getOption("logR.seq_view")

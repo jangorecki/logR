@@ -18,7 +18,8 @@ logR_query <- function(.db = getOption("logR.db"), .conn = getOption("logR.conn"
     if(!file.exists(log_file)) stop("logR is set to log into csv file but there is no no csv file in working directory.")
   }
   else if(isTRUE(.db)){
-    # if(!dbIsValid(.conn)) stop("You must provide valid connection for database.") # uncomment after RH2#2
+    if(class(.conn)[1L]=="H2Connection") invisible() # remove after RH2#2
+    else if(!dbIsValid(.conn)) stop("You must provide valid connection for database.")
   }
   logr_id <- logr_start_int <- logr_start <- status <- logr_end_int <- logr_end <- timing <- in_rows <- out_rows <- tag <- mail <- cond_call <- cond_message <- NULL
   dt <- if(!isTRUE(.db)) setDT(read.table(paste(.wd,paste(.table,"csv",sep="."),sep="/"), sep=",", header=TRUE, na.strings=""))[] else setDT(dbGetQuery(.conn, paste("SELECT * FROM",.table)))
