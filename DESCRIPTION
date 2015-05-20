@@ -12,9 +12,10 @@ Depends:
     data.table (>= 1.9.5)
 Imports:
     DBI
+Enhances:
+    microbenchmark
 Suggests:
     testthat,
-    microbenchmark,
     mailR,
     shiny,
     RJDBC,
