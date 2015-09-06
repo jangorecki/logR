@@ -1,7 +1,7 @@
 Package: logR
 Type: Package
 Title: Log R Calls
-Version: 1.9.9.5
+Version: 1.9.9.6
 Date: 2015-05-06
 Author: Jan Gorecki
 Maintainer: Jan Gorecki <J.Gorecki@wit.edu.pl>

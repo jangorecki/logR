@@ -3,6 +3,7 @@
 #' @param .db logical.
 #' @param .conn DBI connection.
 #' @param .table character.
+#' @param .schema character.
 #' @param .wd character working directory path to be used when logging to csv file.
 #' @details By default all function arguments will be taken from options which are used to setup logR logging, for arguments description see \link{logR}.
 #' @seealso \link{logR}, \link{logR_browser}
@@ -11,7 +12,7 @@
 #' logR(Sys.sleep(0.01))
 #' logR_query()
 #' file.remove("LOGR.csv")
-logR_query <- function(.db = getOption("logR.db"), .conn = getOption("logR.conn"), .table = getOption("logR.table"), .wd = getOption("logR.wd",getwd())){
+logR_query <- function(.db = getOption("logR.db"), .conn = getOption("logR.conn"), .table = getOption("logR.table"), .schema = getOption("logR.schema"), .wd = getOption("logR.wd",getwd())){
   if(is.null(.db)) stop("logR options has not been set up, reload the logR package or set 'logR.db' option.")
   else if(!isTRUE(.db)){
     log_file <- paste(.wd,paste(.table,"csv",sep="."),sep="/")
@@ -19,10 +20,11 @@ logR_query <- function(.db = getOption("logR.db"), .conn = getOption("logR.conn"
   }
   else if(isTRUE(.db)){
     if(class(.conn)[1L]=="H2Connection") invisible() # remove after RH2#2
+    else if(class(.conn)[1L]=="PostgreSQLConnection") invisible() # no dbIsValid method for postgres
     else if(!dbIsValid(.conn)) stop("You must provide valid connection for database.")
   }
   logr_id <- logr_start_int <- logr_start <- status <- logr_end_int <- logr_end <- timing <- in_rows <- out_rows <- tag <- mail <- cond_call <- cond_message <- NULL
-  dt <- if(!isTRUE(.db)) setDT(read.table(paste(.wd,paste(.table,"csv",sep="."),sep="/"), sep=",", header=TRUE, na.strings=""))[] else setDT(dbGetQuery(.conn, paste("SELECT * FROM",.table)))
+  dt <- if(!isTRUE(.db)) setDT(read.table(paste(.wd,paste(.table,"csv",sep="."),sep="/"), sep=",", header=TRUE, na.strings=""))[] else setDT(dbGetQuery(.conn, paste("SELECT * FROM",paste(c(.schema,.table),collapse="."))))
   dt[,`:=`(logr_id = as.integer(logr_id),
            logr_start_int = as.integer(logr_start_int),
            logr_start = as.POSIXct(logr_start, origin="1970-01-01"),

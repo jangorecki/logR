@@ -4,12 +4,14 @@
 \title{logR schema scripts dictionary}
 \usage{
 schema_sql(table = getOption("logR.table"),
-  seq_view = getOption("logR.seq_view"))
+  seq_view = getOption("logR.seq_view"), schema = getOption("logR.schema"))
 }
 \arguments{
 \item{table}{character table name for log storing.}
 
 \item{seq_view}{character name of view which will query sequence.}
+
+\item{schema}{character schema name for log storing.}
 }
 \description{
 logR schema scripts dictionary

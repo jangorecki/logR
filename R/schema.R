@@ -1,6 +1,7 @@
 #' @title logR schema scripts dictionary
 #' @param table character table name for log storing.
 #' @param seq_view character name of view which will query sequence.
+#' @param schema character schema name for log storing.
 #' @note You can PR new database scripts.
 #' @seealso \link{logR_schema}, \link{logR}
 #' @export
@@ -11,17 +12,17 @@
 #' schema_sql()[, create_view, vendor]
 #' # print scripts for one vendor
 #' invisible(schema_sql()["sqlserver", cat(paste(.SD,collapse="\n")), .SDcols=-"vendor"])
-schema_sql <- function(table = getOption("logR.table"), seq_view = getOption("logR.seq_view")){
+schema_sql <- function(table = getOption("logR.table"), seq_view = getOption("logR.seq_view"), schema = getOption("logR.schema")){
   data.table(vendor = c("h2","sqlserver","postgres","oracle"),
-             create_seq = c("CREATE SEQUENCE SEQ_LOGR_ID MINVALUE 1 MAXVALUE 2147483647;",
+             create_seq = c(paste("CREATE SEQUENCE",paste(c(schema,"SEQ_LOGR_ID"),collapse="."),"MINVALUE 1 MAXVALUE 2147483647;"),
                             NA_character_,
-                            "CREATE SEQUENCE SEQ_LOGR_ID MINVALUE 1 MAXVALUE 2147483647;",
+                            paste("CREATE SEQUENCE",paste(c(schema,"SEQ_LOGR_ID"),collapse="."),"MINVALUE 1 MAXVALUE 2147483647;"),
                             NA_character_),
-             create_view = c(paste("CREATE VIEW",seq_view,"AS SELECT SEQ_LOGR_ID.nextval AS logr_id FROM DUAL;"), # h2
+             create_view = c(paste("CREATE VIEW",paste(c(schema,seq_view),collapse="."),"AS SELECT",paste(c(schema,"SEQ_LOGR_ID","nextval"),collapse="."),"AS logr_id FROM DUAL;"), # h2
                              NA_character_, # sqlserver
-                             paste("CREATE VIEW",seq_view,"AS SELECT nextval('SEQ_LOGR_ID') AS logr_id;"), # postgres
+                             paste("CREATE VIEW",paste(c(schema,seq_view),collapse="."),"AS SELECT",paste0("nextval('",paste(c(schema,"SEQ_LOGR_ID"), collapse="."),"')"),"AS logr_id;"), # postgres
                              NA_character_), # oracle
-             create_logr = c(paste('CREATE TABLE',table,'(
+             create_logr = c(paste('CREATE TABLE',paste(c(schema,table),collapse="."),'(
                                    "logr_id" INTEGER PRIMARY KEY,
                                    "logr_start_int" INTEGER,
                                    "logr_start" VARCHAR(255),
@@ -37,7 +38,7 @@ schema_sql <- function(table = getOption("logR.table"), seq_view = getOption("lo
                                    "cond_call" VARCHAR(255),
                                    "cond_message" VARCHAR(255)
                                    );'), # h2
-                             paste('CREATE TABLE',table,'(
+                             paste('CREATE TABLE',paste(c(schema,table),collapse="."),'(
                                    "logr_id" INTEGER PRIMARY KEY,
                                    "logr_start_int" INTEGER,
                                    "logr_start" VARCHAR(255),
@@ -53,7 +54,7 @@ schema_sql <- function(table = getOption("logR.table"), seq_view = getOption("lo
                                    "cond_call" VARCHAR(255),
                                    "cond_message" VARCHAR(255)
                                    );'), # sqlserver
-                             paste('CREATE TABLE',table,'(
+                             paste('CREATE TABLE',paste(c(schema,table),collapse="."),'(
                                    "logr_id" INTEGER PRIMARY KEY,
                                    "logr_start_int" INTEGER,
                                    "logr_start" VARCHAR(255),
@@ -69,7 +70,7 @@ schema_sql <- function(table = getOption("logR.table"), seq_view = getOption("lo
                                    "cond_call" VARCHAR(255),
                                    "cond_message" VARCHAR(255)
                                    );'), # postgres
-                             paste('CREATE TABLE',table,'(
+                             paste('CREATE TABLE',paste(c(schema,table),collapse="."),'(
                                    "logr_id" INTEGER PRIMARY KEY,
                                    "logr_start_int" INTEGER,
                                    "logr_start" VARCHAR(255),
@@ -115,6 +116,7 @@ schema_sql <- function(table = getOption("logR.table"), seq_view = getOption("lo
 #' }
 logR_schema <- function(vendor = c("h2","sqlserver","postgres","oracle"), .conn = getOption("logR.conn"), drop = FALSE){
   if(class(.conn)[1L]=="H2Connection") dbSendQuery <- RJDBC::dbSendUpdate # remove after RH2#3
+  else if(class(.conn)[1L]=="PostgreSQLConnection") invisible() # no dbIsValid method for postgres
   else if(!dbIsValid(.conn)) stop("You must provide valid connection for database.") # remove `else` after RH2#2
   stopifnot(length(vendor) == 1L, vendor %in% c("h2","sqlserver","postgres","oracle"))
   

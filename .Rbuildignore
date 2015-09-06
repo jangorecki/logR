@@ -1,2 +1,2 @@
-^\.travis\.yml$
-^cran-comments\.md$
+.travis.yml
+.gitignore

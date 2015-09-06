@@ -6,6 +6,7 @@
   options("logR.table" = "LOGR")
   options("logR.seq_view" = "LOGR_ID")
   options("logR.conn" = NULL)
+  options("logR.schema" = NULL)
   options("logR.mail" = FALSE) # require mailR
   options("logR.mail_args" = NULL)
   options("logR.wd" = NULL)

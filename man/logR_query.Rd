@@ -4,7 +4,8 @@
 \title{Query logR data}
 \usage{
 logR_query(.db = getOption("logR.db"), .conn = getOption("logR.conn"),
-  .table = getOption("logR.table"), .wd = getOption("logR.wd", getwd()))
+  .table = getOption("logR.table"), .schema = getOption("logR.schema"),
+  .wd = getOption("logR.wd", getwd()))
 }
 \arguments{
 \item{.db}{logical.}
@@ -12,6 +13,8 @@ logR_query(.db = getOption("logR.db"), .conn = getOption("logR.conn"),
 \item{.conn}{DBI connection.}
 
 \item{.table}{character.}
+
+\item{.schema}{character.}
 
 \item{.wd}{character working directory path to be used when logging to csv file.}
 }

@@ -74,6 +74,7 @@ update_make_set <- function(col, x){
 #' @param .db logical, when \emph{FALSE} then function will write log to csv file instead of database. Default to \code{getOption("logR.db",FALSE)}.
 #' @param .conn DBI connection. Default to \code{getOption("logR.conn",NULL)}.
 #' @param .table character scalar, location in database to store logs, default \code{getOption("logR.table")}.
+#' @param .schema character scalar, location in database to store logs, default \code{getOption("logR.schema")}.
 #' @param .log logical escape parameter, set to \emph{FALSE} to suppress logR process and just execute a call, default to \code{getOption("logR.log",TRUE)}.
 #' @return Result of evaluated \emph{CALL}.
 #' @note You may expect some silent data types conversion when writing to database, exactly the same directly using DBI. Only first warning will be logged to database and send on email.
@@ -136,6 +137,7 @@ logR <- function(CALL,
                  mail_args = getOption("logR.mail_args"),
                  .db = getOption("logR.db"),
                  .conn = getOption("logR.conn"),
+                 .schema = getOption("logR.schema"),
                  .table = getOption("logR.table"),
                  .log = getOption("logR.log")){
   if(!isTRUE(.log)) return(eval.parent(CALL))
@@ -151,6 +153,7 @@ logR <- function(CALL,
   .db <- as.logical(.db)
   if(.db){
     if(class(.conn)[1L]=="H2Connection") dbSendQuery <- RJDBC::dbSendUpdate # remove after RH2#3
+    else if(class(.conn)[1L]=="PostgreSQLConnection") invisible() # no dbIsValid method for postgres
     else if(!dbIsValid(.conn)) stop("Provided connection in 'logR.conn' option or '.conn' argument is not valid. Provide valid DBI connection.") # remove `else` after: RH2#2
   }
   mail <- as.logical(mail)
@@ -165,7 +168,7 @@ logR <- function(CALL,
   do.ins.ret <- is.function(ins.ret)
   # start logging table
   if(.db){
-    if(!do.ins.ret) logr <- setDT(dbGetQuery(.conn, paste("SELECT logr_id FROM",getOption("logR.seq_view")))) # view to query sequence ID, using view to be db vendor independent, set view to query from sequence according to your db vendor
+    if(!do.ins.ret) logr <- setDT(dbGetQuery(.conn, paste("SELECT logr_id FROM",paste(c(.schema, getOption("logR.seq_view")),collapse=".")))) # view to query sequence ID, using view to be db vendor independent, set view to query from sequence according to your db vendor
     else if(do.ins.ret) logr <- data.table(logr_id = NA_integer_) # will be updated later on insert
   } else if(!.db){
     logr <- data.table(logr_id = NA_integer_)
@@ -194,7 +197,7 @@ logR <- function(CALL,
       set(logr, i=1L, j=1L, value=as.integer(r[["logr_id"]]))
     } # use do.ins.ret, update returning id
     else if(!do.ins.ret){
-      ins.tab <- paste("INSERT INTO", .table)
+      ins.tab <- paste("INSERT INTO", paste(c(.schema, .table), collapse = "."))
       ins.col <- paste0("(",paste(names(logr), collapse=","),")")
       ins.val <- paste("VALUES",paste0("(",paste(vapply(names(logr),sql_val,NA_character_,logr), collapse=","),")"))
       ins <- paste0(paste(c(ins.tab,ins.col,ins.val), collapse=" "), ";")
@@ -245,7 +248,7 @@ logR <- function(CALL,
   if(.db){
     cols_to_upd <- c("status","logr_end_int","logr_end","timing","out_rows","cond_call","cond_message")
     upd_set <- vapply(cols_to_upd,update_make_set,NA_character_,logr)
-    sql <- paste0("UPDATE ",.table," SET ",paste(upd_set,collapse=",")," WHERE logr_id = ",format(logr[["logr_id"]],scientific = FALSE),";")
+    sql <- paste0("UPDATE ",paste(c(.schema, .table), collapse=".")," SET ",paste(upd_set,collapse=",")," WHERE logr_id = ",format(logr[["logr_id"]],scientific = FALSE),";")
     upd <- dbSendQuery(.conn, sql)
   } else {
     # write csv log

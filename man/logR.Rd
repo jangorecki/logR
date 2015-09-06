@@ -6,8 +6,8 @@
 logR(CALL, tag = NA_character_, in_rows = NA_integer_,
   silent = getOption("logR.silent"), mail = getOption("logR.mail"),
   mail_args = getOption("logR.mail_args"), .db = getOption("logR.db"),
-  .conn = getOption("logR.conn"), .table = getOption("logR.table"),
-  .log = getOption("logR.log"))
+  .conn = getOption("logR.conn"), .schema = getOption("logR.schema"),
+  .table = getOption("logR.table"), .log = getOption("logR.log"))
 }
 \arguments{
 \item{CALL}{call to be evaluted with logging.}
@@ -25,6 +25,8 @@ logR(CALL, tag = NA_character_, in_rows = NA_integer_,
 \item{.db}{logical, when \emph{FALSE} then function will write log to csv file instead of database. Default to \code{getOption("logR.db",FALSE)}.}
 
 \item{.conn}{DBI connection. Default to \code{getOption("logR.conn",NULL)}.}
+
+\item{.schema}{character scalar, location in database to store logs, default \code{getOption("logR.schema")}.}
 
 \item{.table}{character scalar, location in database to store logs, default \code{getOption("logR.table")}.}
 

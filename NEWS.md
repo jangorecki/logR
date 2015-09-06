@@ -1,12 +1,13 @@
+# logR 1.9.9.6
+
+- [x] added database schema support
+
+
 # logR 1.9.9.5
 
 - [x] DBI db support only, dwtools dependency remove
 - [x] CRAN-ready, no more gh only deps
 - [x] data.table now in Depends to run all examples
-- [ ] db schema creation
-  - [ ] sqlserver
-  - [ ] oracle
-- [ ] more db-dependent manual unit tests
 
 
 # logR 1.9.9
