@@ -1,6 +1,8 @@
-suppressMessages(library(logR))
+## create db and user is done in travis using sudo:
+# su postgres -c "psql -c \"CREATE USER logruser WITH PASSWORD 'logrpass';\""
+# su postgres -c "createdb -O logruser logrdb"
 
-# create db and user is, will be done in travis
+suppressMessages(library(logR))
 
 # meta columns to log
 
@@ -13,11 +15,11 @@ create_meta = list(batch_id = "INTEGER", ruser = "VARCHAR(255)", comment = "VARC
 # setup connection, options and schema
 
 conn = dbConnect(PostgreSQL(), 
-                 host="192.168.56.101", 
+                 host="127.0.0.1", 
                  port="5432", 
-                 dbname="rdb",
-                 user="ruser",
-                 password="userpassr")
+                 dbname="logrdb",
+                 user="logruser",
+                 password="logrpass")
 options("logR.conn" = conn,
         "logR.schema" = "logr",
         "logR.meta" = meta())
