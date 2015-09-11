@@ -2,7 +2,7 @@
 #' @param table character table name for log storing.
 #' @param seq_view character name of view which will query sequence.
 #' @param schema character schema name for log storing.
-#' @param meta list of metadata columns, postgres data types as character string named by column name. Avoid reserved postgres keyword.
+#' @param meta list of metadata columns, postgres data types as character string named by column name. Avoid reserved postgres keywords.
 #' @seealso \link{logR_schema}, \link{logR}
 schema_sql = function(table = getOption("logR.table"), seq_view = getOption("logR.seq_view"), schema = getOption("logR.schema"), meta = list()){
     list(
@@ -31,10 +31,11 @@ schema_sql = function(table = getOption("logR.table"), seq_view = getOption("log
 
 #' @title Populate logR schema
 #' @description There are three database objects required, plus optional schema, all are populated by this function call. To view scripts see \link{schema_sql}.
+#' @param meta list of metadata columns, postgres data types as character string named by column name. Avoid reserved postgres keywords.
 #' @param .conn DBI connection.
 #' @param drop logical, try drop before creation.
 #' @seealso \link{schema_sql}, \link{logR}
-logR_schema <- function(meta = list(), .conn = getOption("logR.conn"), drop = FALSE){
+logR_schema = function(meta = list(), .conn = getOption("logR.conn"), drop = FALSE){
     if(length(meta)){
         if(!all(sapply(meta, function(x) length(x) == 1L))) stop("All elements of 'meta' arg must have length of 1.")
     }

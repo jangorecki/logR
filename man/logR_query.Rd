@@ -3,10 +3,16 @@
 \alias{logR_query}
 \title{Query logR data}
 \usage{
-logR_query(where, .conn = getOption("logR.conn"),
+logR_query(alert, status, since, .conn = getOption("logR.conn"),
   .table = getOption("logR.table"), .schema = getOption("logR.schema"))
 }
 \arguments{
+\item{alert}{logical, if TRUE then filter to alerts.}
+
+\item{status}{logical, if TRUE then filter to non-success.}
+
+\item{since}{POSIXt or Date, if provided then filter on start timestamp.}
+
 \item{.conn}{DBI connection.}
 
 \item{.table}{character.}
@@ -20,6 +26,6 @@ Query logR logs from defined database or csv file.
 By default all function arguments will be taken from options which are used to setup logR logging, for arguments description see \link{logR}.
 }
 \seealso{
-\link{logR}, \link{logR_browser}
+\link{logR}
 }
 

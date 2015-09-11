@@ -1,6 +1,6 @@
 ## create db and user is done in travis using sudo:
-# su postgres -c "psql -c \"CREATE USER logruser WITH PASSWORD 'logrpass';\""
-# su postgres -c "createdb -O logruser logrdb"
+# sudo su postgres -c "psql -c \"CREATE USER logruser WITH PASSWORD 'logrpass';\""
+# sudo su postgres -c "createdb -O logruser logrdb"
 
 suppressMessages(library(logR))
 
@@ -24,7 +24,7 @@ options("logR.conn" = conn,
         "logR.schema" = "logr",
         "logR.meta" = meta())
 
-logR_schema(meta = create_meta, drop=TRUE)
+logR_schema(meta = create_meta)
 
 # log expressions
 
@@ -36,7 +36,7 @@ dt = as.data.table(df)
 dfr = logR(with(df, aggregate(a, list(b), sum)), in_rows=nrow(df))
 dtr = logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt), meta=meta())
 err = logR(sum(1,"a"), meta=meta(comment="sum num and char"))
-war = logR(cor(c(1,1),c(2,3)), meta=meta(ruser="nobody"))
+war = logR(cor(c(1,1),c(2,3)), alert=FALSE, meta=meta(ruser="nobody"))
 
 # verify logs
 
@@ -49,9 +49,9 @@ if(!isTRUE(all.equal(
     r[order(logr_id),.(expr, status, alert, ruser, comment)],
     data.table(expr = c("with(df, aggregate(a, list(b), sum))", "dt[, .(a = sum(a)), , b]", "sum(1, \"a\")", "cor(c(1, 1), c(2, 3))"),
                status = c("success", "success", "error", "warning"), 
-               alert = c(FALSE, FALSE, TRUE, TRUE), 
+               alert = c(FALSE, FALSE, TRUE, FALSE), 
                ruser = c("someuser", "someuser", "someuser", "nobody"), 
                comment = c(NA, NA, "sum num and char", NA))
-))) stop("Fetched logs not matched to expected")
+))) stop("Fetched logs not matching to expected")
 
 q("no")

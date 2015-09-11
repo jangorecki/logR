@@ -6,6 +6,8 @@
 logR_schema(meta = list(), .conn = getOption("logR.conn"), drop = FALSE)
 }
 \arguments{
+\item{meta}{list of metadata columns, postgres data types as character string named by column name. Avoid reserved postgres keywords.}
+
 \item{.conn}{DBI connection.}
 
 \item{drop}{logical, try drop before creation.}

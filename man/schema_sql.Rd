@@ -14,7 +14,7 @@ schema_sql(table = getOption("logR.table"),
 
 \item{schema}{character schema name for log storing.}
 
-\item{meta}{list of metadata columns, postgres data types as character string named by column name. Avoid reserved postgres keyword.}
+\item{meta}{list of metadata columns, postgres data types as character string named by column name. Avoid reserved postgres keywords.}
 }
 \description{
 logR schema scripts dictionary
