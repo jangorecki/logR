@@ -1,2 +1,5 @@
 .travis.yml
 .gitignore
+^.*\.Rproj$
+^\.Rproj\.user$
+.Rhistory

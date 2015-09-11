@@ -1,24 +1,17 @@
 Package: logR
 Type: Package
-Title: Log R Calls
-Version: 1.9.9.6
-Date: 2015-05-06
+Title: Log R expressions
+Version: 2.0
+Date: 2015-09-11
 Author: Jan Gorecki
 Maintainer: Jan Gorecki <J.Gorecki@wit.edu.pl>
-Description: Complete logging solution. Writes to database call metadata before its evaluation. Evalutes with timing and warning/error catching. Updates database entry for processing details: in/out rows, custom metadata, warning/error messages. Email on warning/errors.
+Description: Complete logging solution. Branch focused on postgres database and flexibility.
 URL: https://github.com/jangorecki/logR
 License: GPL-3
 Depends:
-    data.table (>= 1.9.5)
+    data.table (>= 1.9.5),
+    RPostgreSQL
 Imports:
     DBI
 Enhances:
     microbenchmark
-Suggests:
-    testthat,
-    mailR,
-    shiny,
-    RJDBC,
-    RH2,
-    knitr
-VignetteBuilder: knitr

@@ -3,31 +3,21 @@
 \alias{logR_query}
 \title{Query logR data}
 \usage{
-logR_query(.db = getOption("logR.db"), .conn = getOption("logR.conn"),
-  .table = getOption("logR.table"), .schema = getOption("logR.schema"),
-  .wd = getOption("logR.wd", getwd()))
+logR_query(where, .conn = getOption("logR.conn"),
+  .table = getOption("logR.table"), .schema = getOption("logR.schema"))
 }
 \arguments{
-\item{.db}{logical.}
-
 \item{.conn}{DBI connection.}
 
 \item{.table}{character.}
 
 \item{.schema}{character.}
-
-\item{.wd}{character working directory path to be used when logging to csv file.}
 }
 \description{
 Query logR logs from defined database or csv file.
 }
 \details{
 By default all function arguments will be taken from options which are used to setup logR logging, for arguments description see \link{logR}.
-}
-\examples{
-logR(Sys.sleep(0.01))
-logR_query()
-file.remove("LOGR.csv")
 }
 \seealso{
 \link{logR}, \link{logR_browser}

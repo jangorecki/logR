@@ -1,47 +1,26 @@
-# logR [![Build Status](https://travis-ci.org/jangorecki/logR.svg?branch=master)](https://travis-ci.org/jangorecki/logR)
+# logR [![Build Status](https://travis-ci.org/jangorecki/logR.svg?branch=pg_mini)](https://travis-ci.org/jangorecki/logR)
 
 Extended logging solution:
 
 - [x] transactional logging: insert log, evaluate call, update log.
+- [x] log to postgres database.
 - [x] warnings and error catching.
-- [x] log process metadata: in/our nrow, tags.
-- [x] log to DBI supported database.
-- [ ] requires *SEQUENCE* or *INSERT RETURNING* database features.
-- [x] email notification on warnings/error.
+- [x] log process metadata: in/our nrow, flexible list of custom metadata.
+- [ ] email notification on warnings/error.
 - [x] support parallel processing.
-- [x] shiny app web UI to browse logs.
 
-**Current version:** [1.9.9.5](NEWS.md)
+The logR [pg_mini](https://github.com/jangorecki/logR/tree/pg_mini) branch is focused on logging to postgres. New *alert* feature is added which allows to distinguish action for error/warnings. Additionally instead of single `tag` field there is flexible metadata columns list. Sending emails will be handled by [www.mailgun.com](http://www.mailgun.com/) to remove java dependency which is currently used in other branches.  
 
 ## Installation
 
 ```r
 library(devtools)
-install_github("jangorecki/logR")
+install_github("jangorecki/logR@pg_mini")
 ```
 
 ## Usage
 
-See [How to use logR](https://rawgit.com/jangorecki/ed9a4d9f7dbc77229746/raw/cd44c0d2e396d18ff8c0b158f550b6ef7a744a5b/logR.html) vignette.
-
-```r
-library(logR)
-
-# read
-?logR
-
-# csv logging example
-N <- 1e5
-df <- data.frame(a = rnorm(N), b = sample(seq_len(as.integer(log(N))),N,TRUE))
-dt <- as.data.table(df)
-dfr <- logR(with(df, aggregate(a, list(b), sum)), in_rows=nrow(df))
-dtr <- logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt))
-err <- logR(sum(1,"a"))
-war <- logR(cor(c(1,1),c(2,3)))
-logR_query()
-library(shiny)
-logR_browser()
-```
+See `tests/tests.R` and read manual.
 
 ## License
 

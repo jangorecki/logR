@@ -2,16 +2,13 @@
   
   options("logR.log" = TRUE)
   options("logR.nano" = TRUE) # require microbenchmark
-  options("logR.db" = FALSE)
-  options("logR.table" = "LOGR")
-  options("logR.seq_view" = "LOGR_ID")
+  options("logR.table" = "logr")
+  options("logR.seq_view" = "logr_id")
   options("logR.conn" = NULL)
   options("logR.schema" = NULL)
-  options("logR.mail" = FALSE) # require mailR
+  options("logR.meta" = list())
+  options("logR.mail" = FALSE) # require mailgun.com account
   options("logR.mail_args" = NULL)
-  options("logR.wd" = NULL)
   options("logR.silent" = TRUE)
-  options("logR.insert.returning" = NULL) # user provided function(ins.tab, ins.col, ins.val), see psql example: logR:::insert.returning.psql
-  options("logR.insert.driver" = NULL) # required for dbFetch / sqlGetResults
   
 }

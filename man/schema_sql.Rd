@@ -4,7 +4,8 @@
 \title{logR schema scripts dictionary}
 \usage{
 schema_sql(table = getOption("logR.table"),
-  seq_view = getOption("logR.seq_view"), schema = getOption("logR.schema"))
+  seq_view = getOption("logR.seq_view"), schema = getOption("logR.schema"),
+  meta = list())
 }
 \arguments{
 \item{table}{character table name for log storing.}
@@ -12,20 +13,11 @@ schema_sql(table = getOption("logR.table"),
 \item{seq_view}{character name of view which will query sequence.}
 
 \item{schema}{character schema name for log storing.}
+
+\item{meta}{list of metadata columns, postgres data types as character string named by column name. Avoid reserved postgres keyword.}
 }
 \description{
 logR schema scripts dictionary
-}
-\note{
-You can PR new database scripts.
-}
-\examples{
-# scripts for each vendor
-schema_sql()[, .(sql = names(.SD)), vendor]
-# create view statements for each vendor
-schema_sql()[, create_view, vendor]
-# print scripts for one vendor
-invisible(schema_sql()["sqlserver", cat(paste(.SD,collapse="\\n")), .SDcols=-"vendor"])
 }
 \seealso{
 \link{logR_schema}, \link{logR}

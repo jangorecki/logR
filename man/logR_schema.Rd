@@ -3,37 +3,15 @@
 \alias{logR_schema}
 \title{Populate logR schema}
 \usage{
-logR_schema(vendor = c("h2", "sqlserver", "postgres", "oracle"),
-  .conn = getOption("logR.conn"), drop = FALSE)
+logR_schema(meta = list(), .conn = getOption("logR.conn"), drop = FALSE)
 }
 \arguments{
-\item{vendor}{character, currently supported \code{c("h2","sqlserver","postgres","oracle")}.}
-
 \item{.conn}{DBI connection.}
 
 \item{drop}{logical, try drop before creation.}
 }
 \description{
-There are three database objects required, all are populated by this function call. To view scripts see \link{schema_sql}.
-}
-\examples{
-if(require("RH2", quietly=TRUE)){
-  library(RH2)
-  # setup options and connection
-  opts <- options("logR.db" = TRUE,
-                  "logR.conn" = dbConnect(H2(), "jdbc:h2:mem:"))
-  # run build schema scripts
-  logR_schema(vendor = "h2")
-
-  # check if exists
-  dbGetQuery(getOption("logR.conn"),
-             "SELECT sequence_name, current_value FROM INFORMATION_SCHEMA.SEQUENCES")
-  dbGetQuery(getOption("logR.conn"),
-             "SELECT table_type, table_name
-              FROM INFORMATION_SCHEMA.TABLES
-              WHERE table_schema != 'INFORMATION_SCHEMA'")
- dbDisconnect(getOption("logR.conn"))
-}
+There are three database objects required, plus optional schema, all are populated by this function call. To view scripts see \link{schema_sql}.
 }
 \seealso{
 \link{schema_sql}, \link{logR}
