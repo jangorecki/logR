@@ -14,8 +14,8 @@ r_github_packages:
  - jangorecki/microbenchmark@noggplot2
  
 before_script:
- - su postgres -c "psql -c \"CREATE USER logruser WITH PASSWORD 'logrpass';\""
- - su postgres -c "createdb -O logruser logrdb"
+ - sudo su postgres -c "psql -c \"CREATE USER logruser WITH PASSWORD 'logrpass';\""
+ - sudo su postgres -c "createdb -O logruser logrdb"
 
 after_script:
   - cat $(find . -maxdepth 1 -name "*.Rcheck" -type d)/tests/tests.Rout
