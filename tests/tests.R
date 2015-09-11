@@ -43,6 +43,8 @@ war = logR(cor(c(1,1),c(2,3)), meta=meta(ruser="nobody"))
 r = logR_query()
 invisible(dbDisconnect(conn))
 
+print(r)
+
 if(!isTRUE(all.equal(
     r[order(logr_id),.(expr, status, alert, ruser, comment)],
     data.table(expr = c("with(df, aggregate(a, list(b), sum))", "dt[, .(a = sum(a)), , b]", "sum(1, \"a\")", "cor(c(1, 1), c(2, 3))"),

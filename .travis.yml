@@ -1,5 +1,3 @@
-# this is not ready
-
 language: r
 sudo: required
 
@@ -13,16 +11,11 @@ r_packages:
 
 r_github_packages:
  - Rdatatable/data.table
+ - jangorecki/microbenchmark@noggplo2
  
 before_script:
  - su postgres -c "psql -c \"CREATE USER logruser WITH PASSWORD 'logrpass';\""
  - su postgres -c "createdb -O logruser logrdb"
-
-  - createdb logr -O logr
-  - createuser logr
-  
-  - psql -c "CREATE USER logr WITH PASSWORD 'logrpass';" -U postgres
-sudo su postgres -c "createdb -O dwtools dwtools"
 
 after_script:
   - cat $(find . -maxdepth 1 -name "*.Rcheck" -type d)/tests/tests.Rout
