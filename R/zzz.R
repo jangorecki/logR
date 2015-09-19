@@ -1,14 +1,13 @@
 .onLoad <- function(libname, pkgname){
-  
-  options("logR.log" = TRUE)
-  options("logR.nano" = TRUE) # require microbenchmark
-  options("logR.table" = "logr")
-  options("logR.seq_view" = "logr_id")
-  options("logR.conn" = NULL)
-  options("logR.schema" = NULL)
-  options("logR.meta" = list())
-  options("logR.mail" = FALSE) # require mailgun.com account
-  options("logR.mail_args" = NULL)
-  options("logR.silent" = TRUE)
-  
+    
+    if(is.null(getOption("logR.log"))) options("logR.log" = TRUE)
+    if(is.null(getOption("logR.nano"))) options("logR.nano" = TRUE) # force off-microbenchmark
+    if(is.null(getOption("logR.table"))) options("logR.table" = "logr")
+    # options("logR.conn" = NULL)
+    # options("logR.schema" = NULL)
+    if(is.null(getOption("logR.meta"))) options("logR.meta" = list())
+    if(is.null(getOption("logR.mail"))) options("logR.mail" = FALSE) # require mailgun.com account
+    # options("logR.mail_args" = NULL)
+    if(is.null(getOption("logR.silent"))) options("logR.silent" = TRUE)
+    
 }

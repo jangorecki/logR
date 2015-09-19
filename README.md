@@ -1,21 +1,23 @@
-# logR [![Build Status](https://travis-ci.org/jangorecki/logR.svg?branch=pg_mini)](https://travis-ci.org/jangorecki/logR)
+# logR [![Build Status](https://travis-ci.org/jangorecki/logR.svg?branch=master)](https://travis-ci.org/jangorecki/logR)
 
 Extended logging solution:
 
-- [x] transactional logging: insert log, evaluate call, update log.
-- [x] log to postgres database.
-- [x] warnings and error catching.
-- [x] log process metadata: in/our nrow, flexible list of custom metadata.
-- [ ] email notification on warnings/error.
-- [x] support parallel processing.
+- [x] transactional logging: insert log, evaluate expression, update log
+- [x] log to postgres database
+- [x] records errors, warnings, messages, interrupts
+- [x] log process metadata: in/our nrow, flexible list of custom metadata
+- [ ] email notification on alerts
+- [x] support parallel processing
 
-The logR [pg_mini](https://github.com/jangorecki/logR/tree/pg_mini) branch is focused on logging to postgres. New *alert* feature is added which allows to distinguish action for error/warnings. Additionally instead of single `tag` field there is flexible metadata columns list. Sending emails will be handled by [www.mailgun.com](http://www.mailgun.com/) to remove java dependency which is currently used in other branches.  
+Since the `2.1.0` version the `pg_mini` branch becomes the `master`. Previous `master` is available as `dwtools` branch.  
+New *alert* argument is added which allows to distinguish action for each expression. Additionally instead of single `tag` field there is flexible metadata columns list. Sending emails will be handled by [www.mailgun.com](http://www.mailgun.com/) to remove java dependency which is currently used in other branches.  
 
 ## Installation
 
 ```r
 library(devtools)
-install_github("jangorecki/logR@pg_mini")
+install_github("jangorecki/logR")
+# soon: install.packages("logR", repos="https://jangorecki.github.io/drat")
 ```
 
 ## Usage
@@ -28,4 +30,4 @@ GPL-3
 
 ## Contact
 
-`J.Gorecki@wit.edu.pl`
+`jangorecki@protonmail.com`

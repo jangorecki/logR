@@ -3,21 +3,18 @@
 \alias{schema_sql}
 \title{logR schema scripts dictionary}
 \usage{
-schema_sql(table = getOption("logR.table"),
-  seq_view = getOption("logR.seq_view"), schema = getOption("logR.schema"),
-  meta = list())
+schema_sql(schema = getOption("logR.schema"),
+  table = getOption("logR.table"), meta = list())
 }
 \arguments{
-\item{table}{character table name for log storing.}
-
-\item{seq_view}{character name of view which will query sequence.}
-
 \item{schema}{character schema name for log storing.}
 
-\item{meta}{list of metadata columns, postgres data types as character string named by column name. Avoid reserved postgres keywords.}
+\item{table}{character table name for log storing.}
+
+\item{meta}{list of metadata columns, postgres data types as character string named by column name like \code{list(tag='VARCHAR(255)', val_col='DOUBLE PRECISION', int_col='INTEGER', systimecol='TIMESTAMPTZ')}. Avoid reserved postgres keywords.}
 }
 \description{
-logR schema scripts dictionary
+Use \link{logR_schema} to execute all scripts at once.
 }
 \seealso{
 \link{logR_schema}, \link{logR}

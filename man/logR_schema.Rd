@@ -3,17 +3,17 @@
 \alias{logR_schema}
 \title{Populate logR schema}
 \usage{
-logR_schema(meta = list(), .conn = getOption("logR.conn"), drop = FALSE)
+logR_schema(meta = list(), drop = FALSE, .conn = getOption("logR.conn"))
 }
 \arguments{
-\item{meta}{list of metadata columns, postgres data types as character string named by column name. Avoid reserved postgres keywords.}
-
-\item{.conn}{DBI connection.}
+\item{meta}{list of metadata columns, postgres data types as character string named by column name like \code{list(tag='VARCHAR(255)', val_col='DOUBLE PRECISION', int_col='INTEGER', systimecol='TIMESTAMPTZ')}. Avoid reserved postgres keywords.}
 
 \item{drop}{logical, try drop before creation.}
+
+\item{.conn}{DBI connection.}
 }
 \description{
-There are three database objects required, plus optional schema, all are populated by this function call. To view scripts see \link{schema_sql}.
+Function will execute scripts create schema and table to store logs. To view scripts see \link{schema_sql}.
 }
 \seealso{
 \link{schema_sql}, \link{logR}

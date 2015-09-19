@@ -22,7 +22,7 @@ logR(expr, alert = TRUE, in_rows = NA_integer_,
 
 \item{mail}{logical if \emph{TRUE} then on alert the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.}
 
-\item{mail_args}{list}
+\item{mail_args}{list - mail not implemented yet.}
 
 \item{.conn}{DBI connection. Default to \code{getOption("logR.conn",NULL)}.}
 
@@ -39,7 +39,7 @@ Result of evaluated \emph{expr}.
 Complete logging solution. Writes to database call metadata before its evaluation. Evalutes with timing and warning/error catching. Updates database entry for processing details: in/out rows, custom metadata, warning/error messages. Email on warning/errors.
 }
 \note{
-You may expect some silent data types conversion when writing to database, exactly the same directly using DBI. Only first warning will be logged to database and send on email.
+Only first warning/message will be logged to database and send on email.
 }
 \section{Side effects}{
 
@@ -49,25 +49,17 @@ You may expect some silent data types conversion when writing to database, exact
 }
 }
 
-\section{Database setup using SEQUENCE}{
+\section{Database setup}{
 
-Logging process requires 3 database objects:
-\itemize{
-\item \strong{sequence} - required for transactional logging
-\item \strong{view} - query sequence, it isolates SQL \code{.nextval} calls on the database side
-\item \strong{table} - place to store logs
-}
 You can create all three objects automatically using \link{logR_schema} function.
-View must return \emph{logr_id} column and should be named \code{getOption("logR.seq_view","LOGR_ID")}. Default name of log table is \code{getOption("logR.table","LOGR")}.
-Due to various supported database interfaces it is recommended to set maximum value of the sequence to \code{.Machine$integer.max} which is \emph{2147483647}.
 }
 
 \section{Fatal errors}{
 
 If your R function will manage to kill whole R session you will see that \emph{status} entry in log table will not get updated and it will stay as \emph{NA}.
-It might be worth to schedule a watcher task to detect such cases, see \emph{How to use logR} vignette.
+It might be worth to schedule a watcher task to detect such cases, see \link{logR_watcher} vignette.
 }
 \seealso{
-\link{logR_schema}, \link{schema_sql}, \link{logR_query}
+\link{logR_schema}, \link{logR_query}
 }
 
