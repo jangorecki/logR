@@ -9,7 +9,7 @@ logR_watcher(since = Sys.time() - 86400)
 \item{since}{POSIXt or Date, must be provided for this function.}
 }
 \value{
-Will raise error in case if it will find any NULL stats logs. Otherwise NULL invisibly.
+Will raise warning in case if it will find any NULL stats logs. Otherwise NULL invisibly.
 }
 \description{
 On unlikely fatal error R session crash while evaluting logged expression it will not update \code{status} field in database. This functions helps to detect such cases.

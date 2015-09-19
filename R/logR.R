@@ -20,18 +20,22 @@ trunc_char <- function(x, n = 33L){
 #' @return a list with elements 'value', 'error', 'warning', 'message', 'interrupt'.
 tryCatch2 <- function(expr){
     V=E=W=M=I=NULL
+    # - [x] catch errors
     e.handler = function(e){
         E <<- e
         NULL
     }
+    # - [x] catch multiple warnings
     w.handler = function(w){
         W <<- c(W, list(w))
         invokeRestart("muffleWarning")
     }
+    # - [x] catch multiple messages
     m.handler = function(m){
         attributes(m$call) <- NULL
         M <<- c(M, list(m))
     }
+    # - [x] catch interrupt
     i.handler = function(i){
         I <<- i
         NULL
@@ -77,19 +81,19 @@ update_make_set <- function(col, x){
 }
 
 #' @title Detailed logging of R expressions
-#' @description Complete logging solution. Writes to database call metadata before its evaluation. Evalutes with timing and warning/error catching. Updates database entry for processing details: in/out rows, custom metadata, warning/error messages. Email on warning/errors.
+#' @description Complete logging solution. Writes to database expressions metadata before its evaluation. Evalutes with timing and warning/error/interrupt/messages catching. Updates database entry for processing details: in/out rows, custom metadata, messages/warning/error message. Email on alerts.
 #' @param expr expression to be evaluted with logging.
 #' @param alert logical, should be alert flag suppressed on warning/error, including suppressing email notification.
 #' @param in_rows integer input DF/DT nrow, \emph{logR} can only guess \emph{out_rows}.
 #' @param meta list, list of custom fields, each of length 1, list be always the same, fill missing with NA. Default \code{getOption("logR.meta",list())} means no meta columns. If you want to change element you need to alter table before.
-#' @param silent logical, if default \code{getOption("logR.silent",TRUE)} it will not raise warning or error but only log.
+#' @param silent logical, if default \code{getOption("logR.silent",TRUE)} it will not raise warning or error but only log them.
 #' @param mail logical if \emph{TRUE} then on alert the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.
 #' @param mail_args list - mail not implemented yet.
 #' @param .conn DBI connection. Default to \code{getOption("logR.conn",NULL)}.
 #' @param .schema character scalar, location in database to store logs, default \code{getOption("logR.schema")}.
 #' @param .table character scalar, location in database to store logs, default \code{getOption("logR.table")}.
 #' @param .log logical escape parameter, set to \emph{FALSE} to suppress logR process and just execute a call, default to \code{getOption("logR.log",TRUE)}.
-#' @return Result of evaluated \emph{expr}.
+#' @return Result of evaluated \emph{expr}, NULL in case of error or interrupt. If \code{silent = FALSE} then error/warning/interrupt will raise warning/error.
 #' @note Only first warning/message will be logged to database and send on email.
 #' @section Side effects:
 #' \itemize{
@@ -97,10 +101,10 @@ update_make_set <- function(col, x){
 #' \item in case of alerts and email notification configured also the email will be send.
 #' }
 #' @section Database setup:
-#' You can create all three objects automatically using \link{logR_schema} function.
+#' You can create db objects automatically using \link{logR_schema} function or manually using code from \link{schema_sql}.
 #' @section Fatal errors:
 #' If your R function will manage to kill whole R session you will see that \emph{status} entry in log table will not get updated and it will stay as \emph{NA}.
-#' It might be worth to schedule a watcher task to detect such cases, see \link{logR_watcher} vignette.
+#' It might be worth to schedule a watcher task to detect such cases, see \link{logR_watcher}.
 #' @seealso \link{logR_schema}, \link{logR_query}
 logR = function(expr,
                 alert = TRUE,

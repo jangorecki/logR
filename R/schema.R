@@ -5,6 +5,7 @@
 #' @description Use \link{logR_schema} to execute all scripts at once.
 #' @seealso \link{logR_schema}, \link{logR}
 schema_sql = function(schema = getOption("logR.schema"), table = getOption("logR.table"), meta = list()){
+    # - [x] drop and create sql scripts for schema (if provided) and table
     list(
         drop = list(
             table =  paste0("DROP TABLE ",paste(c(schema,table),collapse="."),";"),
@@ -26,6 +27,7 @@ schema_sql = function(schema = getOption("logR.schema"), table = getOption("logR
                            '"message" VARCHAR(255),',
                            '"cond_call" VARCHAR(255),',
                            '"cond_message" VARCHAR(255)',
+                           # - [x] support for custom list of metadata columns to create table sql script
                            if(length(meta)) paste0(",",paste(paste0('"',names(meta),'"'), unlist(meta), sep = " ", collapse=", "))
                            ,');')
         )
@@ -44,7 +46,9 @@ logR_schema = function(meta = list(), drop = FALSE, .conn = getOption("logR.conn
         if(!all(sapply(meta, is.character))) stop("All elements of 'meta' arg must be characters. Read ?logR_schema.")
     }
     sql = schema_sql(meta = meta)
+    # - [x] optional silenty try to drop db objects
     if(isTRUE(drop)) lapply(sql$drop, function(statement) if(length(statement)) try(dbSendQuery(.conn, statement), silent = TRUE))
+    # - [x] execute create script of schema (if provided) and table
     lapply(sql$create, function(statement) if(length(statement)) dbSendQuery(.conn, statement))
     invisible(TRUE)
 }

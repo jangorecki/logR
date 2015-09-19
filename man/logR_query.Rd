@@ -21,6 +21,9 @@ logR_query(alert, status, since, limit, .conn = getOption("logR.conn"),
 
 \item{.schema}{character.}
 }
+\value{
+Logs according to filters in \emph{DESC} order.
+}
 \description{
 Query logR logs from defined database or csv file.
 }
@@ -28,6 +31,6 @@ Query logR logs from defined database or csv file.
 By default all function arguments will be taken from options which are used to setup logR logging, for arguments description see \link{logR}.
 }
 \seealso{
-\link{logR}
+\link{logR}, \link{logR_watcher}
 }
 

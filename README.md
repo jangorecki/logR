@@ -11,6 +11,7 @@ Extended logging solution:
 
 Since the `2.1.0` version the `pg_mini` branch becomes the `master`. Previous `master` is available as `dwtools` branch.  
 New *alert* argument is added which allows to distinguish action for each expression. Additionally instead of single `tag` field there is flexible metadata columns list. Sending emails will be handled by [www.mailgun.com](http://www.mailgun.com/) to remove java dependency which is currently used in other branches.  
+See [source code description](inst/doc/doc.md) for details.  
 
 ## Installation
 

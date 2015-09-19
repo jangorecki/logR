@@ -18,7 +18,7 @@ logR(expr, alert = TRUE, in_rows = NA_integer_,
 
 \item{meta}{list, list of custom fields, each of length 1, list be always the same, fill missing with NA. Default \code{getOption("logR.meta",list())} means no meta columns. If you want to change element you need to alter table before.}
 
-\item{silent}{logical, if default \code{getOption("logR.silent",TRUE)} it will not raise warning or error but only log.}
+\item{silent}{logical, if default \code{getOption("logR.silent",TRUE)} it will not raise warning or error but only log them.}
 
 \item{mail}{logical if \emph{TRUE} then on alert the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.}
 
@@ -33,10 +33,10 @@ logR(expr, alert = TRUE, in_rows = NA_integer_,
 \item{.log}{logical escape parameter, set to \emph{FALSE} to suppress logR process and just execute a call, default to \code{getOption("logR.log",TRUE)}.}
 }
 \value{
-Result of evaluated \emph{expr}.
+Result of evaluated \emph{expr}, NULL in case of error or interrupt. If \code{silent = FALSE} then error/warning/interrupt will raise warning/error.
 }
 \description{
-Complete logging solution. Writes to database call metadata before its evaluation. Evalutes with timing and warning/error catching. Updates database entry for processing details: in/out rows, custom metadata, warning/error messages. Email on warning/errors.
+Complete logging solution. Writes to database expressions metadata before its evaluation. Evalutes with timing and warning/error/interrupt/messages catching. Updates database entry for processing details: in/out rows, custom metadata, messages/warning/error message. Email on alerts.
 }
 \note{
 Only first warning/message will be logged to database and send on email.
@@ -51,13 +51,13 @@ Only first warning/message will be logged to database and send on email.
 
 \section{Database setup}{
 
-You can create all three objects automatically using \link{logR_schema} function.
+You can create db objects automatically using \link{logR_schema} function or manually using code from \link{schema_sql}.
 }
 
 \section{Fatal errors}{
 
 If your R function will manage to kill whole R session you will see that \emph{status} entry in log table will not get updated and it will stay as \emph{NA}.
-It might be worth to schedule a watcher task to detect such cases, see \link{logR_watcher} vignette.
+It might be worth to schedule a watcher task to detect such cases, see \link{logR_watcher}.
 }
 \seealso{
 \link{logR_schema}, \link{logR_query}
