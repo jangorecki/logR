@@ -14,7 +14,7 @@
  - [x] allow easy escape from logging using `.log` arg
  - [x] insert db logr entry returning `logr_id`
  - [x] evaluate with timing and catch interrupt/messages/warnings/error
- - [x] use microbenchmark for nano timing when possible
+ - [x] use microbenchmarkCore for nano timing when possible
  - [x] in case of both error and warning then log status='error' and error's condition call+message
  - [x] log first of the messages - can pass arbitrary string from the logged function to log table
  - [x] on interrupt override status and raise alert

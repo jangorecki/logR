@@ -14,4 +14,4 @@ Depends:
 Imports:
     DBI
 Enhances:
-    microbenchmark
+    microbenchmarkCore

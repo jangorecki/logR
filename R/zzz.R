@@ -1,7 +1,7 @@
 .onLoad <- function(libname, pkgname){
     
     if(is.null(getOption("logR.log"))) options("logR.log" = TRUE)
-    if(is.null(getOption("logR.nano"))) options("logR.nano" = TRUE) # force off-microbenchmark
+    if(is.null(getOption("logR.nano"))) options("logR.nano" = TRUE) # force off-microbenchmarkCore
     if(is.null(getOption("logR.table"))) options("logR.table" = "logr")
     # options("logR.conn" = NULL)
     # options("logR.schema" = NULL)

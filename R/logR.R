@@ -153,11 +153,11 @@ logR = function(expr,
     )
     
     # - [x] evaluate with timing and catch interrupt/messages/warnings/error
-    if(isTRUE(getOption("logR.nano")) && requireNamespace("microbenchmark", quietly=TRUE)){
-        # - [x] use microbenchmark for nano timing when possible
-        ts = microbenchmark::get_nanotime()
+    if(isTRUE(getOption("logR.nano")) && requireNamespace("microbenchmarkCore", quietly=TRUE)){
+        # - [x] use microbenchmarkCore for nano timing when possible
+        ts = microbenchmarkCore::get_nanotime()
         r = tryCatch2(expr = eval(subexpr, envir = parent.frame()))
-        timing = (microbenchmark::get_nanotime() - ts) * 1e-9
+        timing = (microbenchmarkCore::get_nanotime() - ts) * 1e-9
     } else {
         ts = proc.time()[[3L]]
         r = tryCatch2(expr = eval(subexpr, envir = parent.frame()))
