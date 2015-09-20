@@ -16,6 +16,10 @@ schema_sql(schema = getOption("logR.schema"),
 \description{
 Use \link{logR_schema} to execute all scripts at once.
 }
+\examples{
+sql = schema_sql(schema="logr")
+invisible(lapply(sql, sapply, cat, sep="\\n"))
+}
 \seealso{
 \link{logR_schema}, \link{logR}
 }

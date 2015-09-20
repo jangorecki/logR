@@ -4,6 +4,9 @@
 #' @param meta list of metadata columns, postgres data types as character string named by column name like \code{list(tag='VARCHAR(255)', val_col='DOUBLE PRECISION', int_col='INTEGER', systimecol='TIMESTAMPTZ')}. Avoid reserved postgres keywords.
 #' @description Use \link{logR_schema} to execute all scripts at once.
 #' @seealso \link{logR_schema}, \link{logR}
+#' @examples 
+#' sql = schema_sql(schema="logr")
+#' invisible(lapply(sql, sapply, cat, sep="\n"))
 schema_sql = function(schema = getOption("logR.schema"), table = getOption("logR.table"), meta = list()){
     # - [x] drop and create sql scripts for schema (if provided) and table
     list(
