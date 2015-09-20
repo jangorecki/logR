@@ -2,14 +2,14 @@ Package: logR
 Type: Package
 Title: Log R expressions
 Version: 2.1.0
-Date: 2015-09-19
+Date: 2015-09-21
 Author: Jan Gorecki
 Maintainer: Jan Gorecki <jangorecki@protonmail.com>
 Description: Complete logging solution.
 URL: https://github.com/jangorecki/logR
 License: GPL-3
 Depends:
-    data.table (>= 1.9.5),
+    data.table (>= 1.9.6),
     RPostgreSQL
 Imports:
     DBI
