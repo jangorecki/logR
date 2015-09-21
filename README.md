@@ -16,7 +16,7 @@ See [source code description](inst/doc/doc.md) for details.
 ## Installation
 
 ```r
-install.packages("logR", repos = paste0("https://",c(
+install.packages(c("microbenchmarkCore","logR"), repos = paste0("https://",c(
     "cran.rstudio.com",
     "olafmersmann.github.io/drat",
     "jangorecki.github.io/drat"
