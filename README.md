@@ -16,9 +16,11 @@ See [source code description](inst/doc/doc.md) for details.
 ## Installation
 
 ```r
-library(devtools)
-install_github("jangorecki/logR")
-# soon: install.packages("logR", repos="https://jangorecki.github.io/drat")
+install.packages("logR", repos = paste0("https://",c(
+    "cran.rstudio.com",
+    "olafmersmann.github.io/drat",
+    "jangorecki.github.io/drat"
+)))
 ```
 
 ## Usage
