@@ -25,7 +25,7 @@ install.packages(c("microbenchmarkCore","logR"), repos = paste0("https://",c(
 
 ## Usage
 
-See `tests/tests.R` and read manual.
+See `.travis.yml`, `tests/tests.R` and read manual.
 
 ## License
 
@@ -33,4 +33,4 @@ GPL-3
 
 ## Contact
 
-`jangorecki@protonmail.com`
+`jangorecki@protonmail.ch`
