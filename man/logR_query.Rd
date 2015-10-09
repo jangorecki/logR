@@ -3,7 +3,7 @@
 \alias{logR_query}
 \title{Query logR data}
 \usage{
-logR_query(alert, status, since, limit, .conn = getOption("logR.conn"),
+logR_query(alert, status, since, where, limit, .conn = getOption("logR.conn"),
   .table = getOption("logR.table"), .schema = getOption("logR.schema"))
 }
 \arguments{
@@ -12,6 +12,8 @@ logR_query(alert, status, since, limit, .conn = getOption("logR.conn"),
 \item{status}{logical, if TRUE then filter out success.}
 
 \item{since}{POSIXt or Date, if provided then filter on start timestamp.}
+
+\item{where}{list named, each element can be a vector of character values for `IN` filter for name in list.}
 
 \item{limit}{integer, if provided then limit numbers of rows returned.}
 

@@ -3,6 +3,7 @@
 #' @param alert logical, if TRUE then filter out non-alerts.
 #' @param status logical, if TRUE then filter out success.
 #' @param since POSIXt or Date, if provided then filter on start timestamp.
+#' @param where list named, each element can be a vector of character values for `IN` filter for name in list.
 #' @param limit integer, if provided then limit numbers of rows returned.
 #' @param .conn DBI connection.
 #' @param .table character.
@@ -10,9 +11,15 @@
 #' @details By default all function arguments will be taken from options which are used to setup logR logging, for arguments description see \link{logR}.
 #' @return Logs according to filters in \emph{DESC} order.
 #' @seealso \link{logR}, \link{logR_watcher}
-logR_query = function(alert, status, since, limit, .conn = getOption("logR.conn"), .table = getOption("logR.table"), .schema = getOption("logR.schema")){
+logR_query = function(alert, status, since, where, limit, .conn = getOption("logR.conn"), .table = getOption("logR.table"), .schema = getOption("logR.schema")){
     sql = paste0("SELECT * FROM ",paste(c(.schema,.table),collapse="."))
-    where = character()
+    # - [x] decode custom filter in `where` arg, from list to character
+    where = if(!missing(where)){
+        stopifnot(is.list(where))
+        if(length(where)){
+            sapply(names(where), function(col) sprintf("(%s IN (%s))", col, paste0("'",where[[col]],"'", collapse=", ")))
+        } else character()
+    } else character()
     # - [x] allow filter for alerts or NULL
     if(!missing(alert)){
         if(isTRUE(alert)) where = c(where, "(alert = TRUE OR alert IS NULL)")
