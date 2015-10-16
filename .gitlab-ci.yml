@@ -1,0 +1,15 @@
+before_script:
+  - sudo apt-get -qq update
+  - sudo apt-get -qq -y install software-properties-common apt-transport-https
+  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
+  - sudo add-apt-repository 'deb  https://cran.rstudio.com/bin/linux/ubuntu trusty/'
+  - sudo apt-get -qq update && sudo apt-get -qq -y install r-base-dev libcurl4-openssl-dev htop git postgresql libpq-dev
+  - sudo apt-get -qq update && sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y
+  - sudo su postgres -c "psql -c \"CREATE USER logruser WITH PASSWORD 'logrpass';\""
+  - sudo su postgres -c "createdb -O logruser logrdb"
+
+test:
+  script:
+    - R CMD build logR --no-build-vignettes
+    - FILE=$(ls -1t *.tar.gz | head -n 1)
+    - R CMD check ${FILE} --no-build-vignettes
