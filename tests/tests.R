@@ -17,12 +17,13 @@ create_meta = list(batch_id = "INTEGER", ruser = "VARCHAR(255)", comment = "VARC
 
 # setup connection, options and schema
 
+env_with_default = function(x, default = "") if((val <- Sys.getenv(x))=="") default else val
 conn = dbConnect(PostgreSQL(), 
-                 host="127.0.0.1", 
-                 port="5432", 
-                 dbname="logrdb",
-                 user="logruser",
-                 password="logrpass")
+                 host=env_with_default("POSTGRES_HOST", "127.0.0.1"),
+                 port=env_with_default("POSTGRES_PORT", "5432"), 
+                 dbname=env_with_default("POSTGRES_DB", "logrdb"),
+                 user=env_with_default("POSTGRES_USER", "logruser"),
+                 password=env_with_default("POSTGRES_PASSWORD", "logrpass"))
 options("logR.conn" = conn,
         "logR.schema" = "logr",
         "logR.meta" = meta())
