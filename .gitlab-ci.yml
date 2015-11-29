@@ -1,4 +1,3 @@
-image: jangorecki/r-base-dev
 services:
   - postgres
 
@@ -14,6 +13,7 @@ before_script:
   - Rscript -e 'install.packages(c("RPostgreSQL","data.table","microbenchmarkCore"), repos=paste0("https://", c("olafmersmann.github.io/drat","cran.rstudio.com")))'
 
 test:
+  image: jangorecki/r-base-dev
   script:
     - R CMD build . --no-build-vignettes --no-manual
     - PKG_FILE_NAME=$(ls -1t *.tar.gz | head -n 1)
