@@ -5,8 +5,8 @@ services:
 variables:
   POSTGRES_HOST: postgres
   POSTGRES_DB: logrdb
-  POSTGRES_PASSWORD: logrpass
   POSTGRES_USER: logruser
+  POSTGRES_PASSWORD: logrpass
   
 before_script:
   - apt-get update -qy
