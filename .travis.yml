@@ -2,10 +2,10 @@ language: r
 sudo: required
 
 before_install:
- - sudo apt-get remove -y postgresql-9.1
+ - sudo apt-get remove --purge -y postgresql-9.1
 
 apt_packages:
- - postgresql
+ - postgresql-9.5
  - libpq-dev
 
 r_packages:
