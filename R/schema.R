@@ -40,18 +40,19 @@ schema_sql = function(schema = getOption("logR.schema"), table = getOption("logR
 #' @title Populate logR schema
 #' @description Function will execute scripts create schema and table to store logs. To view scripts see \link{schema_sql}.
 #' @param meta list of metadata columns, postgres data types as character string named by column name like \code{list(tag='VARCHAR(255)', val_col='DOUBLE PRECISION', int_col='INTEGER', systimecol='TIMESTAMPTZ')}. Avoid reserved postgres keywords.
-#' @param drop logical, try drop before creation.
+#' @param drop logical, drop before creation.
+#' @param silent logical, silently try calls to db
 #' @param .conn DBI connection.
 #' @seealso \link{schema_sql}, \link{logR}
-logR_schema = function(meta = list(), drop = FALSE, .conn = getOption("logR.conn")){
+logR_schema = function(meta = list(), drop = FALSE, silent = TRUE, .conn = getOption("logR.conn")){
     if(length(meta)){
         if(!all(sapply(meta, function(x) length(x) == 1L))) stop("All elements of 'meta' arg must have length of 1. Read ?logR_schema.")
         if(!all(sapply(meta, is.character))) stop("All elements of 'meta' arg must be characters. Read ?logR_schema.")
     }
     sql = schema_sql(meta = meta)
     # - [x] optional silenty try to drop db objects
-    if(isTRUE(drop)) lapply(sql$drop, function(statement) if(length(statement)) try(dbSendQuery(.conn, statement), silent = TRUE))
+    if(isTRUE(drop)) lapply(sql$drop, function(statement) if(length(statement)) try(dbSendQuery(.conn, statement), silent = silent))
     # - [x] execute create script of schema (if provided) and table
-    lapply(sql$create, function(statement) if(length(statement)) dbSendQuery(.conn, statement))
+    lapply(sql$create, function(statement) if(length(statement)) try(dbSendQuery(.conn, statement), silent = silent))
     invisible(TRUE)
 }
