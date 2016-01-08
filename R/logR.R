@@ -85,7 +85,7 @@ update_make_set <- function(col, x){
 #' @param expr expression to be evaluted with logging.
 #' @param alert logical, should be alert flag suppressed on warning/error, including suppressing email notification.
 #' @param in_rows integer input DF/DT nrow, \emph{logR} can only guess \emph{out_rows}.
-#' @param meta list, list of custom fields, each of length 1, list be always the same, fill missing with NA. Default \code{getOption("logR.meta",list())} means no meta columns. If you want to change element you need to alter table before.
+#' @param meta list or a function that will result such list, list of custom fields, each of length 1, list be always the same, fill missing with NA. Default \code{getOption("logR.meta",list())} means no meta columns. If the input is a function then it is evaluated with default values for all argument, and should return a valid list. If you want to change element you need to alter table before or recreate with \link{logR_schema}.
 #' @param silent logical, if default \code{getOption("logR.silent",TRUE)} it will not raise warning or error but only log them.
 #' @param mail logical if \emph{TRUE} then on alert the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.
 #' @param mail_args list - mail not implemented yet.
@@ -124,11 +124,14 @@ logR = function(expr,
             NA_integer_
         }
     }
-    stopifnot(is.logical(alert), is.integer(in_rows), is.list(meta), is.logical(silent), is.logical(mail), !is.null(.conn), is.character(.table), is.logical(.log))
+    stopifnot(is.logical(alert), is.integer(in_rows), is.list(meta) || is.function(meta), is.logical(silent), is.logical(mail), !is.null(.conn), is.character(.table), is.logical(.log))
     # - [x] allow easy escape from logging using `.log` arg
     if(!isTRUE(.log)) return(eval.parent(expr))
-    subexpr = substitute(expr)
 
+    # - [x] allow to pass function to `meta` argument which makes it dynamically calculated
+    if(is.function(meta)) meta = meta()
+
+    subexpr = substitute(expr)
     # set meta on start
     logr = data.table(logr_start = Sys.time(),
                       expr = deparse_to_char(subexpr),
@@ -140,7 +143,7 @@ logR = function(expr,
         if(!all(sapply(meta, is.atomic))) stop("All elements of 'meta' arg must be of atomic type.")
         logr[, c(names(meta)) := meta]
     }
-    
+
     # - [x] insert db logr entry returning `logr_id`
     ins.tab = paste("INSERT INTO", paste(c(.schema, .table), collapse = "."))
     ins.col = paste0("(",paste(names(logr), collapse=","),")")
@@ -151,7 +154,7 @@ logR = function(expr,
         logr_id <- dbGetQuery(.conn, sql)$logr_id,
         error = function(e) stop(paste0("Make sure you use same list of 'meta' fields each time, if you want to change it you need to alter table to match names and types, debug using below query and error.\n",sql,"\n",as.character(e)), call. = FALSE)
     )
-    
+
     # - [x] evaluate with timing and catch interrupt/messages/warnings/error
     if(isTRUE(getOption("logR.nano")) && requireNamespace("microbenchmarkCore", quietly=TRUE)){
         # - [x] use microbenchmarkCore for nano timing when possible
@@ -163,7 +166,7 @@ logR = function(expr,
         r = tryCatch2(expr = eval(subexpr, envir = parent.frame()))
         timing = proc.time()[[3L]] - ts
     }
-    
+
     # set meta on end
     logr[,`:=`(logr_id = logr_id,
                logr_end = Sys.time(),
@@ -186,16 +189,16 @@ logR = function(expr,
                    cond_call = NA_character_,
                    cond_message = NA_character_)]
     }
-    
+
     # - [x] log first of the messages - can pass arbitrary string from the logged function to log table
     logr[,`:=`(message = if(!is.null(r$message)) r$message[[1L]]$message else NA_character_)]
-    
+
     if(!is.null(r$interrupt)){
         # - [x] on interrupt override status and raise alert
         logr[,`:=`(status = "interrupt",
                    alert = TRUE)]
     }
-    
+
     # - [x] handle R integer max limit (2.147 billion) warn and log alert when 1e6 IDs remains
     if(logr$logr_id >= .Machine$integer.max - 1e6L){
         msg = paste0("restart your logr_id serial column sequence in ",paste(c(.schema,.table),collapse=".")," as it will soon hit the R max integer ",.Machine$integer.max,".")
@@ -203,7 +206,7 @@ logR = function(expr,
         logr[,`:=`(alert = TRUE,
                    message = paste(msg, message, sep=" Original message: "))]
     }
-    
+
     # - [x] update db logr entry with timings, statuses, etc.
     cols_to_upd = c("status","alert","logr_end","timing","out_rows","message","cond_call","cond_message")
     upd_set = vapply(cols_to_upd,update_make_set,NA_character_,logr)
@@ -212,13 +215,13 @@ logR = function(expr,
         upd <- dbSendQuery(.conn, sql),
         error = function(e) stop(paste0("Error while update should not happend, debug using below query and error.\n",sql,"\n",as.character(e)), call. = FALSE)
     )
-    
+
     # - [ ] send mail on alerts
     if(logr$mail && logr$alert){
         stop("Mail feature TO DO for 2.1+")
         # will require jsonlite and httr?
     }
-    
+
     # - [x] raise error/warning/interrupt for `silent=FALSE`, messages are not forwarded
     if(!silent){
         if(logr$status %in% "error"){
@@ -229,7 +232,7 @@ logR = function(expr,
             stop(paste0("Evaluation of below expression has been interrupted.\n", deparse_to_char(logr$expr)))
         }
     }
-    
+
     # - [x] return evaluated expression or NULL on error/interrupt
     return(r$value)
 }
