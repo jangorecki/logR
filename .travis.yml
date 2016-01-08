@@ -21,8 +21,8 @@ env:
  - POSTGRES_HOST="127.0.0.1" POSTGRES_DATABASE=logrdb POSTGRES_USER=logruser POSTGRES_PASSWORD=logrpass POSTGRES_PORT=5433
 
 before_script:
- - sudo su postgres -c "psql -c \"CREATE USER logruser WITH PASSWORD 'logrpass';\""
- - sudo su postgres -c "createdb -O logruser logrdb"
+ - sudo su postgres -c "psql -p 5433 -c \"CREATE USER logruser WITH PASSWORD 'logrpass';\""
+ - sudo su postgres -c "createdb -p 5433 -O logruser logrdb"
 
 after_script:
   - cat $(find . -maxdepth 1 -name "*.Rcheck" -type d)/tests/tests.Rout
