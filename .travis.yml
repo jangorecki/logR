@@ -2,6 +2,7 @@ language: r
 sudo: required
 
 before_install:
+ - sudo service postgresql stop
  - sudo apt-get remove --purge -y postgresql-9.1
 
 apt_packages:
