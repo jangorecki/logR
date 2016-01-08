@@ -2,7 +2,7 @@ language: r
 sudo: required
 
 before_install:
- - sudo service postgresql stop
+ - sudo service postgresql-9.1 stop
  - sudo apt-get remove --purge -y postgresql-9.1
 
 apt_packages:
@@ -18,7 +18,7 @@ r_github_packages:
  - olafmersmann/microbenchmarkCore
 
 env:
- - POSTGRES_HOST="127.0.0.1" POSTGRES_DATABASE=logrdb POSTGRES_USER=logruser POSTGRES_PASSWORD=logrpass
+ - POSTGRES_HOST="127.0.0.1" POSTGRES_DATABASE=logrdb POSTGRES_USER=logruser POSTGRES_PASSWORD=logrpass POSTGRES_PORT=5433
 
 before_script:
  - sudo su postgres -c "psql -c \"CREATE USER logruser WITH PASSWORD 'logrpass';\""
