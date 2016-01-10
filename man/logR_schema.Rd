@@ -3,12 +3,15 @@
 \alias{logR_schema}
 \title{Populate logR schema}
 \usage{
-logR_schema(meta = list(), drop = FALSE, .conn = getOption("logR.conn"))
+logR_schema(meta = list(), drop = FALSE, silent = TRUE,
+  .conn = getOption("logR.conn"))
 }
 \arguments{
 \item{meta}{list of metadata columns, postgres data types as character string named by column name like \code{list(tag='VARCHAR(255)', val_col='DOUBLE PRECISION', int_col='INTEGER', systimecol='TIMESTAMPTZ')}. Avoid reserved postgres keywords.}
 
-\item{drop}{logical, try drop before creation.}
+\item{drop}{logical, drop before creation.}
+
+\item{silent}{logical, silently try calls to db}
 
 \item{.conn}{DBI connection.}
 }

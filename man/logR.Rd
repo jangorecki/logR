@@ -16,7 +16,7 @@ logR(expr, alert = TRUE, in_rows = NA_integer_,
 
 \item{in_rows}{integer input DF/DT nrow, \emph{logR} can only guess \emph{out_rows}.}
 
-\item{meta}{list, list of custom fields, each of length 1, list be always the same, fill missing with NA. Default \code{getOption("logR.meta",list())} means no meta columns. If you want to change element you need to alter table before.}
+\item{meta}{list or a function that will result such list, list of custom fields, each of length 1, list be always the same, fill missing with NA. Default \code{getOption("logR.meta",list())} means no meta columns. If the input is a function then it is evaluated with default values for all argument, and should return a valid list. If you want to change element you need to alter table before or recreate with \link{logR_schema}.}
 
 \item{silent}{logical, if default \code{getOption("logR.silent",TRUE)} it will not raise warning or error but only log them.}
 
