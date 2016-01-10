@@ -125,13 +125,27 @@ logR = function(expr,
         }
     }
     stopifnot(is.logical(alert), is.integer(in_rows), is.list(meta) || is.function(meta), is.logical(silent), is.logical(mail), !is.null(.conn), is.character(.table), is.logical(.log))
-    # - [x] allow easy escape from logging using `.log` arg
-    if(!isTRUE(.log)) return(eval.parent(expr))
+
+    subexpr = substitute(expr)
+
+    # - [x] allow easy escape from logging using `.log` arg, keep error catching
+    if(!isTRUE(.log)){
+        r = tryCatch2(expr = eval(subexpr, envir = parent.frame()))
+        if(!silent){
+            if(!is.null(r$error)){
+                stop(r$error)
+            } else if(!is.null(r$warning)){
+                lapply(r$warning, warning)
+            } else if(!is.null(r$interrupt)){
+                stop(paste0("Evaluation of following expression has been interrupted.\n", deparse_to_char(subexpr)))
+            }
+        }
+        return(r$value) # potentially NULL
+    }
 
     # - [x] allow to pass function to `meta` argument which makes it dynamically calculated
     if(is.function(meta)) meta = meta()
 
-    subexpr = substitute(expr)
     # set meta on start
     logr = data.table(logr_start = Sys.time(),
                       expr = deparse_to_char(subexpr),

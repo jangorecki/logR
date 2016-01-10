@@ -33,4 +33,4 @@ GPL-3
 
 ## Contact
 
-`jangorecki@protonmail.ch`
+`j.gorecki@wit.edu.pl`, alternatively `jangorecki@protonmail.ch`
