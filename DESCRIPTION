@@ -2,7 +2,7 @@ Package: logR
 Type: Package
 Title: Log R expressions
 Version: 2.1.2
-Date: 2015-09-21
+Date: 2016-01-10
 Author: Jan Gorecki
 Maintainer: Jan Gorecki <jangorecki@protonmail.ch>
 Description: Complete logging solution.
