@@ -19,7 +19,7 @@ See [source code description](inst/doc/doc.md) for details.
 install.packages(c("microbenchmarkCore","logR"), repos = paste0("https://",c(
     "cran.rstudio.com",
     "olafmersmann.github.io/drat",
-    "jangorecki.github.io/drat"
+    "jangorecki.github.io/logR"
 )))
 ```
 
