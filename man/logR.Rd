@@ -6,8 +6,9 @@
 logR(expr, alert = TRUE, in_rows = NA_integer_,
   meta = getOption("logR.meta"), silent = getOption("logR.silent"),
   mail = getOption("logR.mail"), mail_args = getOption("logR.mail_args"),
-  .conn = getOption("logR.conn"), .schema = getOption("logR.schema"),
-  .table = getOption("logR.table"), .log = getOption("logR.log"))
+  boolean = FALSE, .conn = getOption("logR.conn"),
+  .schema = getOption("logR.schema"), .table = getOption("logR.table"),
+  .log = getOption("logR.log"))
 }
 \arguments{
 \item{expr}{expression to be evaluted with logging.}
@@ -23,6 +24,8 @@ logR(expr, alert = TRUE, in_rows = NA_integer_,
 \item{mail}{logical if \emph{TRUE} then on alert the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.}
 
 \item{mail_args}{list - mail not implemented yet.}
+
+\item{boolean}{logical, default FALSE, when TRUE only `status=="success"` will be returned.}
 
 \item{.conn}{DBI connection. Default to \code{getOption("logR.conn",NULL)}.}
 

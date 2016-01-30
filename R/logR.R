@@ -89,6 +89,7 @@ update_make_set <- function(col, x){
 #' @param silent logical, if default \code{getOption("logR.silent",TRUE)} it will not raise warning or error but only log them.
 #' @param mail logical if \emph{TRUE} then on alert the email will be send. Requires \emph{mail_args} to be provided. Default \code{getOption("logR.mail",FALSE)}.
 #' @param mail_args list - mail not implemented yet.
+#' @param boolean logical, default FALSE, when TRUE only `status=="success"` will be returned.  
 #' @param .conn DBI connection. Default to \code{getOption("logR.conn",NULL)}.
 #' @param .schema character scalar, location in database to store logs, default \code{getOption("logR.schema")}.
 #' @param .table character scalar, location in database to store logs, default \code{getOption("logR.table")}.
@@ -113,6 +114,7 @@ logR = function(expr,
                 silent = getOption("logR.silent"),
                 mail = getOption("logR.mail"),
                 mail_args = getOption("logR.mail_args"),
+                boolean = FALSE,
                 .conn = getOption("logR.conn"),
                 .schema = getOption("logR.schema"),
                 .table = getOption("logR.table"),
@@ -246,6 +248,9 @@ logR = function(expr,
             stop(paste0("Evaluation of below expression has been interrupted.\n", deparse_to_char(logr$expr)))
         }
     }
+    
+    # - [x] return just status when boolean==TRUE
+    if(boolean) return(identical(logr$status, "success"))
 
     # - [x] return evaluated expression or NULL on error/interrupt
     return(r$value)
