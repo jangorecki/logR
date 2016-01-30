@@ -1,10 +1,6 @@
 
 # initialize --------------------------------------------------------------
 
-## create db and user is done in travis using sudo:
-# sudo su postgres -c "psql -c \"CREATE USER logruser WITH PASSWORD 'logrpass';\""
-# sudo su postgres -c "createdb -O logruser logrdb"
-
 suppressMessages(library(logR))
 
 # meta columns to log
@@ -17,17 +13,9 @@ create_meta = list(batch_id = "INTEGER", ruser = "VARCHAR(255)", comment = "VARC
 
 # setup connection, options and schema
 
-env_with_default = function(x, default = "") if((val <- Sys.getenv(x))=="") default else val
-conn = dbConnect(PostgreSQL(), 
-                 host=env_with_default("POSTGRES_HOST", "127.0.0.1"),
-                 port=env_with_default("POSTGRES_PORT", "5432"), 
-                 dbname=env_with_default("POSTGRES_DB", "logrdb"),
-                 user=env_with_default("POSTGRES_USER", "logruser"),
-                 password=env_with_default("POSTGRES_PASSWORD", "logrpass"))
-options("logR.conn" = conn,
-        "logR.schema" = "logr",
+logR_connect()
+options("logR.schema" = "logr",
         "logR.meta" = meta())
-
 logR_schema(meta = create_meta)
 
 # populate scenarios ------------------------------------------------------
@@ -85,7 +73,7 @@ logR(nX(3L))
 # verify ------------------------------------------------------------------
 
 r = logR_query()
-invisible(dbDisconnect(conn))
+invisible(logR_disconnect())
 
 print(r)
 
