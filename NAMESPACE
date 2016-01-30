@@ -1,8 +1,26 @@
+importFrom(DBI, dbGetQuery, dbSendQuery, dbConnect, dbDisconnect)
+importFrom(RPostgreSQL, PostgreSQL)
+import(data.table)
+
+# connection
+export(logR_connect)
+export(logR_disconnect)
+
+# log
 export(logR)
+
+# access logs
 export(logR_query)
 export(logR_watcher)
+export(logR_dump)
+
+# setup
 export(logR_schema)
 export(schema_sql)
+
+# tryCatch2
 export(tryCatch2)
-importFrom(DBI, dbGetQuery, dbSendQuery)
-import(data.table)
+
+
+
+
