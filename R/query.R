@@ -62,3 +62,17 @@ logR_watcher = function(since = Sys.time()-86400){
     if(nrow(logr) > 0L) warning(paste("Unknown 'status' detected by logR_watcher, count:", nrow(logr)))
     logr[]
 }
+
+#' @title Query whole logR table
+#' @description Easy way to fetch all logs from logR table.
+#' @param .conn DBI connection.
+#' @param .table character.
+#' @param .schema character.
+#' @return data.table, if non-zero length then ordered by \emph{logr_id} field.
+logR_dump = function(.conn = getOption("logR.conn"), .table = getOption("logR.table"), .schema = getOption("logR.schema")){
+    tryCatch(
+        logr <- setDT(dbReadTable(.conn, c(.schema, .table))),
+        error = function(e) stop(sprintf("Query to logR table (%s) fails.\n%s", paste(c(.schema, .table), collapse="."), as.character(e)), call. = FALSE)
+    )
+    if(ncol(logr)) logr[order(logr_id)] else logr
+}
