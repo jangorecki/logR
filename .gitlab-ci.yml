@@ -28,7 +28,7 @@ test:
     # dependencies
     - apt-get update -qy
     - apt-get install -y libpq-dev
-    - Rscript -e 'install.packages(c("RPostgreSQL","data.table","microbenchmarkCore"), repos=paste0("https://", c("olafmersmann.github.io/drat","cran.rstudio.com")))'
+    - Rscript -e 'install.packages(c("RPostgreSQL","data.table"), repos="https://cran.rstudio.com")'
     # run check
     - R CMD check $(ls -1t *.tar.gz | head -n 1) --no-vignettes --no-build-vignettes --no-manual --as-cran
     # export Rcheck results
