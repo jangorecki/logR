@@ -14,7 +14,7 @@ Extended logging solution:
 Install `logR` and suggested `microbenchmarkCore` for high precision timing.  
 ```r
 install.packages("microbenchmarkCore", repos = "https://olafmersmann.github.io/drat")
-install.packages("logR", repos = c("https://cran.rstudio.com","http://jangorecki.gitlaba.io/logR"))
+install.packages("logR", repos = c("https://cran.rstudio.com","http://jangorecki.gitlab.io/logR"))
 ```
 
 ## Usage
