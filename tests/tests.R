@@ -1,5 +1,7 @@
+## for check on localhost use postgres service
+# docker run --rm -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=postgres --name pg postgres:9.5
 
-# initialize --------------------------------------------------------------
+# initialize ----
 
 suppressMessages(library(logR))
 
@@ -16,9 +18,9 @@ create_meta = list(batch_id = "INTEGER", ruser = "VARCHAR(255)", comment = "VARC
 logR_connect()
 options("logR.schema" = "logr",
         "logR.meta" = meta())
-logR_schema(meta = create_meta)
+logR_schema(meta = create_meta, drop = TRUE)
 
-# populate scenarios ------------------------------------------------------
+# populate scenarios ----
 
 # simple
 w1 = function(){ warning("w1"); "ok" }
@@ -41,7 +43,7 @@ n2m1w1 = function(){ logR(m1w1(), silent=FALSE); m1w1() }
 # nested recursive
 nX = function(i){ if(i > 1L) logR(nX(i = i-1L)) else i }
 
-# tests -------------------------------------------------------------------
+# tests ----
 
 # ad-hoc
 N = 1e5
@@ -70,7 +72,7 @@ logR(n1m1w1())
 logR(n2m1w1())
 logR(nX(3L))
 
-# verify ------------------------------------------------------------------
+# verify ----
 
 r = logR_query()
 invisible(logR_disconnect())

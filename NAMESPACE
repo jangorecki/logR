@@ -1,4 +1,4 @@
-importFrom(DBI, dbGetQuery, dbSendQuery, dbConnect, dbDisconnect)
+importFrom(DBI, dbGetQuery, dbSendQuery, dbReadTable, dbConnect, dbDisconnect)
 importFrom(RPostgreSQL, PostgreSQL)
 import(data.table)
 
