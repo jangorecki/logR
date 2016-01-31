@@ -6,7 +6,7 @@ Date: 2016-01-29
 Author: Jan Gorecki
 Maintainer: Jan Gorecki <j.gorecki@wit.edu.pl>
 Description: Complete logging solution.
-URL: https://github.com/jangorecki/logR
+URL: https://gitlab.com/jangorecki/logR
 License: GPL-3
 Depends:
     data.table (>= 1.9.6),

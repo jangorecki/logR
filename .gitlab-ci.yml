@@ -44,7 +44,7 @@ pages:
     # dependencies
     - apt-get update -qy
     - apt-get install -y libpq-dev
-    - Rscript -e 'install.packages(c("RPostgreSQL","data.table","microbenchmarkCore"), repos=paste0("https://", c("olafmersmann.github.io/drat","cran.rstudio.com")))'
+    - Rscript -e 'install.packages(c("RPostgreSQL","data.table"), repos="https://cran.rstudio.com")'
     # install pkg to render html manual
     - R CMD INSTALL --html $(ls -1t *.tar.gz | head -n 1)
     - mkdir public public/html

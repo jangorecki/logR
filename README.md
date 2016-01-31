@@ -11,10 +11,13 @@ Extended logging solution:
 
 ## Installation
 
-Install `logR` and suggested `microbenchmarkCore` for high precision timing.  
+```r
+install.packages("logR", repos = c("https://cran.rstudio.com","http://jangorecki.gitlab.io/logR"))
+```
+
+For high precision timing install suggested package `microbenchmarkCore`.  
 ```r
 install.packages("microbenchmarkCore", repos = "https://olafmersmann.github.io/drat")
-install.packages("logR", repos = c("https://cran.rstudio.com","http://jangorecki.gitlab.io/logR"))
 ```
 
 ## Usage
