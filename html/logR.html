@@ -1,0 +1,126 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Detailed logging of R expressions</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for logR {logR}"><tr><td>logR {logR}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Detailed logging of R expressions</h2>
+
+<h3>Description</h3>
+
+<p>Complete logging solution. Writes to database expressions metadata before its evaluation. Evalutes with timing and warning/error/interrupt/messages catching. Updates database entry for processing details: in/out rows, custom metadata, messages/warning/error message. Email on alerts.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+logR(expr, alert = TRUE, in_rows = NA_integer_,
+  meta = getOption("logR.meta"), silent = getOption("logR.silent"),
+  mail = getOption("logR.mail"), mail_args = getOption("logR.mail_args"),
+  boolean = FALSE, .conn = getOption("logR.conn"),
+  .schema = getOption("logR.schema"), .table = getOption("logR.table"),
+  .log = getOption("logR.log"))
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>expr</code></td>
+<td>
+<p>expression to be evaluted with logging.</p>
+</td></tr>
+<tr valign="top"><td><code>alert</code></td>
+<td>
+<p>logical, should be alert flag suppressed on warning/error, including suppressing email notification.</p>
+</td></tr>
+<tr valign="top"><td><code>in_rows</code></td>
+<td>
+<p>integer input DF/DT nrow, <em>logR</em> can only guess <em>out_rows</em>.</p>
+</td></tr>
+<tr valign="top"><td><code>meta</code></td>
+<td>
+<p>list or a function that will result such list, list of custom fields, each of length 1, list be always the same, fill missing with NA. Default <code>getOption("logR.meta",list())</code> means no meta columns. If the input is a function then it is evaluated with default values for all argument, and should return a valid list. If you want to change element you need to alter table before or recreate with <a href="logR_schema.html">logR_schema</a>.</p>
+</td></tr>
+<tr valign="top"><td><code>silent</code></td>
+<td>
+<p>logical, if default <code>getOption("logR.silent",TRUE)</code> it will not raise warning or error but only log them.</p>
+</td></tr>
+<tr valign="top"><td><code>mail</code></td>
+<td>
+<p>logical if <em>TRUE</em> then on alert the email will be send. Requires <em>mail_args</em> to be provided. Default <code>getOption("logR.mail",FALSE)</code>.</p>
+</td></tr>
+<tr valign="top"><td><code>mail_args</code></td>
+<td>
+<p>list - mail not implemented yet.</p>
+</td></tr>
+<tr valign="top"><td><code>boolean</code></td>
+<td>
+<p>logical, default FALSE, when TRUE only 'status==&quot;success&quot;' will be returned.</p>
+</td></tr>
+<tr valign="top"><td><code>.conn</code></td>
+<td>
+<p>DBI connection. Default to <code>getOption("logR.conn",NULL)</code>.</p>
+</td></tr>
+<tr valign="top"><td><code>.schema</code></td>
+<td>
+<p>character scalar, location in database to store logs, default <code>getOption("logR.schema")</code>.</p>
+</td></tr>
+<tr valign="top"><td><code>.table</code></td>
+<td>
+<p>character scalar, location in database to store logs, default <code>getOption("logR.table")</code>.</p>
+</td></tr>
+<tr valign="top"><td><code>.log</code></td>
+<td>
+<p>logical escape parameter, set to <em>FALSE</em> to suppress logR process and just execute a call, default to <code>getOption("logR.log",TRUE)</code>.</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Result of evaluated <em>expr</em>, NULL in case of error or interrupt. If <code>silent = FALSE</code> then error/warning/interrupt will raise warning/error.
+</p>
+
+
+<h3>Side effects</h3>
+
+
+<ul>
+<li><p> entry in database table.
+</p>
+</li>
+<li><p> in case of alerts and email notification configured also the email will be send.
+</p>
+</li></ul>
+
+
+
+<h3>Database setup</h3>
+
+<p>You can create db objects automatically using <a href="logR_schema.html">logR_schema</a> function or manually using code from <a href="schema_sql.html">schema_sql</a>.
+</p>
+
+
+<h3>Fatal errors</h3>
+
+<p>If your R function will manage to kill whole R session you will see that <em>status</em> entry in log table will not get updated and it will stay as <em>NA</em>.
+It might be worth to schedule a watcher task to detect such cases, see <a href="logR_watcher.html">logR_watcher</a>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Only first warning/message will be logged to database and send on email.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><a href="logR_schema.html">logR_schema</a>, <a href="logR_query.html">logR_query</a>
+</p>
+
+<hr /><div style="text-align: center;">[Package <em>logR</em> version 2.1.3 <a href="00Index.html">Index</a>]</div>
+</body></html>

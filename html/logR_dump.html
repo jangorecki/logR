@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Query whole logR table</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for logR_dump {logR}"><tr><td>logR_dump {logR}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Query whole logR table</h2>
+
+<h3>Description</h3>
+
+<p>Easy way to fetch all logs from logR table.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+logR_dump(.conn = getOption("logR.conn"), .table = getOption("logR.table"),
+  .schema = getOption("logR.schema"))
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>.conn</code></td>
+<td>
+<p>DBI connection.</p>
+</td></tr>
+<tr valign="top"><td><code>.table</code></td>
+<td>
+<p>character.</p>
+</td></tr>
+<tr valign="top"><td><code>.schema</code></td>
+<td>
+<p>character.</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>data.table, if non-zero length then ordered by <em>logr_id</em> field.
+</p>
+
+<hr /><div style="text-align: center;">[Package <em>logR</em> version 2.1.3 <a href="00Index.html">Index</a>]</div>
+</body></html>

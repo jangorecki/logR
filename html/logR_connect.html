@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Connect logR to postgres</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for logR_connect {logR}"><tr><td>logR_connect {logR}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Connect logR to postgres</h2>
+
+<h3>Description</h3>
+
+<p>Wrapper on <code>DBI::dbConnect</code> with defaults from envir.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+logR_connect(host = Sys.getenv("POSTGRES_HOST", "127.0.0.1"),
+  port = Sys.getenv("POSTGRES_PORT", "5432"),
+  dbname = Sys.getenv("POSTGRES_DB", "postgres"),
+  user = Sys.getenv("POSTGRES_USER", "postgres"),
+  password = Sys.getenv("POSTGRES_PASSWORD", "postgres"), quoted = FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>host</code></td>
+<td>
+<p>character hostname/ip by default from ENV var 'POSTGRES_HOST'</p>
+</td></tr>
+<tr valign="top"><td><code>port</code></td>
+<td>
+<p>character port by default from ENV var 'POSTGRES_PORT'</p>
+</td></tr>
+<tr valign="top"><td><code>dbname</code></td>
+<td>
+<p>character port by default from ENV var 'POSTGRES_DB'</p>
+</td></tr>
+<tr valign="top"><td><code>user</code></td>
+<td>
+<p>character port by default from ENV var 'POSTGRES_USER'</p>
+</td></tr>
+<tr valign="top"><td><code>password</code></td>
+<td>
+<p>character port by default from ENV var 'POSTGRES_PASSWORD'</p>
+</td></tr>
+<tr valign="top"><td><code>quoted</code></td>
+<td>
+<p>logical if TRUE it will return unevaluated expression which can be passed to remote R session. Database authentication will be included in expression.</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>logical, if successfully connected then TRUE, otherwise FALSE. Use <code>getOption("logR.conn")</code> to access actual connection, which is set as side effect.
+</p>
+
+<hr /><div style="text-align: center;">[Package <em>logR</em> version 2.1.3 <a href="00Index.html">Index</a>]</div>
+</body></html>

@@ -4,6 +4,6 @@ Depends: data.table (>= 1.9.6), RPostgreSQL
 Imports: DBI
 Enhances: microbenchmarkCore
 License: GPL-3
-MD5sum: 82dec808fb71867bc90154210f222512
+MD5sum: e1b0138be3bb75bd575326b7feb59fa6
 NeedsCompilation: no
 
