@@ -9,43 +9,23 @@ variables:
   POSTGRES_USER: logruser
   POSTGRES_PASSWORD: logrpass
 
-before_script:
-  - R CMD build . --no-build-vignettes --no-manual # to be removed after gitlab-ci-multi-runner#157
-
-stages:
-  - build
-  - test
-  - deploy
-
-build:
-  stage: build
+pages:
   script:
-    - R CMD build . --no-build-vignettes --no-manual
-
-test:
-  stage: test
-  script:
-    # dependencies
+    # non-R dependencies
     - apt-get update -qy
     - apt-get install -y libpq-dev
+    # build pkg
+    - R CMD build . --no-build-vignettes --no-manual
+    # install deps
     - Rscript -e 'install.packages(c("RPostgreSQL","data.table"), repos="https://cran.rstudio.com")'
+    # install suggests
+    - Rscript -e 'install.packages("microbenchmarkCore", repos = "https://olafmersmann.github.io/drat")'
     # run check
     - R CMD check $(ls -1t *.tar.gz | head -n 1) --no-vignettes --no-build-vignettes --no-manual --as-cran
+    # gl-pages dir and Rcheck results dir
+    - mkdir public Rcheck
     # export Rcheck results
-    - mkdir rcheck
-    - mv $(find . -maxdepth 1 -name "*.Rcheck" -type d) rcheck
-  artifacts:
-    paths:
-      - rcheck
-
-pages:
-  stage: deploy
-  script:
-    # dependencies
-    - apt-get update -qy
-    - apt-get install -y libpq-dev
-    - Rscript -e 'install.packages(c("RPostgreSQL","data.table"), repos="https://cran.rstudio.com")'
-    - mkdir public
+    - mv $(find . -maxdepth 1 -name "*.Rcheck" -type d) Rcheck
     # install drat with `packageHtml` function
     - Rscript -e 'install.packages("drat", repos = "https://jangorecki.github.io/drat")'
     # produce drat repo
@@ -56,4 +36,5 @@ pages:
     - master
   artifacts:
     paths:
+      - Rcheck
       - public
