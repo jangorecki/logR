@@ -51,7 +51,7 @@ pages:
     # produce drat repo
     - Rscript -e 'drat::insertPackage(list.files(pattern = "*\\.tar\\.gz$"), repodir = "public")'
     # produce html homepage and manual
-    - Rscript -e 'drat::packageHtml(repodir = "public", repo.url = "https://jangorecki.github.io/logR", manual = TRUE)'
+    - Rscript -e 'drat::packageHtml(repodir = "public", repo.url = "https://jangorecki.github.io/logR", repo.cran = TRUE, manual = TRUE)'
   only:
     - master
   artifacts:
