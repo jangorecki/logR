@@ -3,7 +3,7 @@
 \alias{logR}
 \title{Detailed logging of R expressions}
 \usage{
-logR(expr, alert = TRUE, in_rows = NA_integer_,
+logR(expr, lazy = TRUE, alert = TRUE, in_rows = NA_integer_,
   meta = getOption("logR.meta"), silent = getOption("logR.silent"),
   mail = getOption("logR.mail"), mail_args = getOption("logR.mail_args"),
   boolean = FALSE, .conn = getOption("logR.conn"),
@@ -12,6 +12,8 @@ logR(expr, alert = TRUE, in_rows = NA_integer_,
 }
 \arguments{
 \item{expr}{expression to be evaluted with logging.}
+
+\item{lazy}{logical default TRUE, use FALSE when passing language object to \emph{expr} argument.}
 
 \item{alert}{logical, should be alert flag suppressed on warning/error, including suppressing email notification.}
 
