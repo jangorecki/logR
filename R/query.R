@@ -57,6 +57,7 @@ logR_query = function(alert, status, since, where, limit, .conn = getOption("log
 #' @return Will raise warning in case if it will find any NULL stats logs. Otherwise NULL invisibly.
 #' @seealso \link{logR_query}
 logR_watcher = function(since = Sys.time()-86400){
+    status = NULL
     # - [x] wraps logR to detect NULL status - fatal errors - by default since previous day
     logr = logR_query(status=TRUE, since=since)[is.na(status)]
     if(nrow(logr) > 0L) warning(paste("Unknown 'status' detected by logR_watcher, count:", nrow(logr)))
@@ -70,6 +71,7 @@ logR_watcher = function(since = Sys.time()-86400){
 #' @param .schema character.
 #' @return data.table, if non-zero length then ordered by \emph{logr_id} field.
 logR_dump = function(.conn = getOption("logR.conn"), .table = getOption("logR.table"), .schema = getOption("logR.schema")){
+    logr_id = NULL
     tryCatch(
         logr <- setDT(dbReadTable(.conn, c(.schema, .table))),
         error = function(e) stop(sprintf("Query to logR table (%s) fails.\n%s", paste(c(.schema, .table), collapse="."), as.character(e)), call. = FALSE)
