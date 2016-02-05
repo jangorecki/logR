@@ -1,5 +1,5 @@
 ## for check on localhost use postgres service
-# docker run --rm -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=postgres --name pg postgres:9.5
+# docker run --rm -p 127.0.0.1:5432:5432 -e POSTGRES_DB=logrdb -e POSTGRES_USER=logruser -e POSTGRES_PASSWORD=logrpass --name pg-logr postgres:9.5
 
 # initialize ----
 
@@ -15,7 +15,7 @@ create_meta = list(batch_id = "INTEGER", ruser = "VARCHAR(255)", comment = "VARC
 
 # setup connection, options and schema
 
-logR_connect()
+logR_connect(dbname = "logrdb", user = "logruser", password = "logrpass")
 options("logR.schema" = "logr",
         "logR.meta" = meta())
 logR_schema(meta = create_meta, drop = TRUE)
@@ -93,5 +93,3 @@ if(!isTRUE(all.equal(
                ruser = c(rep("someuser", 21L), "nobody", rep("someuser", 3L)), 
                comment = c(rep(NA, 22L), "sum num and char", rep(NA, 2L)))
 ))) stop("Fetched logs not matching to expected content.")
-
-q("no")
