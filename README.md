@@ -27,7 +27,7 @@ install.packages("microbenchmarkCore", repos = "https://olafmersmann.github.io/d
 3. Use `?logR` call as wrapper over your processes.  
 4. Use `?logR_dump` to dump logs.  
 
-For more details see `tests/tests.R` and read manual.  
+For more details see R scripts in `tests` directory and read manual.  
 
 Working examples of logR usage can also be found in [big.data.table](https://gitlab.com/jangorecki/big.data.table) and [pg](https://gitlab.com/jangorecki/pg) packages. logR can be easily located as suggested dependency and works conditionally.  
 
