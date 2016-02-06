@@ -20,7 +20,7 @@ options("logR.schema" = "logr",
         "logR.meta" = meta())
 logR_schema(meta = create_meta, drop = TRUE)
 
-# populate scenarios ----
+# exception handling scenarios define ----
 
 # simple
 w1 = function(){ warning("w1"); "ok" }
@@ -43,9 +43,8 @@ n2m1w1 = function(){ logR(m1w1(), silent=FALSE); m1w1() }
 # nested recursive
 nX = function(i){ if(i > 1L) logR(nX(i = i-1L)) else i }
 
-# tests ----
+# ad-hoc aggregate tests ----
 
-# ad-hoc
 N = 1e5
 set.seed(1)
 dt = data.table(a = rnorm(N), b = sample(seq_len(as.integer(log(N))),N,TRUE))
@@ -55,7 +54,8 @@ dtr = logR(dt[,.(a=sum(a)),,b], in_rows=nrow(dt), meta=meta())
 err = logR(sum(1,"a"), meta=meta(comment="sum num and char"))
 war = logR(cor(c(1,1),c(2,3)), alert=FALSE, meta=meta(ruser="nobody"))
 
-# scenarios
+# exception handling scenarios execute ----
+
 logR(w1())
 logR(e1())
 logR(m1())

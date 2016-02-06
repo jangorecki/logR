@@ -172,17 +172,19 @@ logR = function(expr,
         logr_id <- dbGetQuery(.conn, sql)$logr_id,
         error = function(e) stop(paste0("Make sure you use same list of 'meta' fields each time, if you want to change it you need to alter table to match names and types, debug using below query and error.\n",sql,"\n",as.character(e)), call. = FALSE)
     )
-    if(!length(logr_id) | is.na(logr_id)){
+    if(!length(logr_id) || is.na(logr_id)){
         stop("logR failed to achieve value from sequence, ensure that logR is connected.")
     }
 
     # - [x] evaluate with timing and catch interrupt/messages/warnings/error
     if(isTRUE(getOption("logR.nano")) && requireNamespace("microbenchmarkCore", quietly=TRUE)){
+        if(isTRUE(getOption("logR.nano.debug"))) message("Using microbenchmarkCore `get_nanotime` for timing precision.")
         # - [x] use microbenchmarkCore for nano timing when possible
         ts = microbenchmarkCore::get_nanotime()
         r = tryCatch2(expr = eval(subexpr, envir = parent.frame()))
         timing = (microbenchmarkCore::get_nanotime() - ts) * 1e-9
     } else {
+        if(isTRUE(getOption("logR.nano.debug"))) message("Using base R `proc.time` for timing precision.")
         ts = proc.time()[[3L]]
         r = tryCatch2(expr = eval(subexpr, envir = parent.frame()))
         timing = proc.time()[[3L]] - ts
