@@ -5,9 +5,10 @@ Extended logging solution:
 - [x] transactional logging: insert log, evaluate expression, update log
 - [x] log to postgres database
 - [x] records errors, warnings, messages, interrupts
-- [x] log process metadata: in/our nrow, flexible list of custom metadata
-- [ ] email notification on alerts
+- [x] log process metadata: in/out nrow, flexible list of custom metadata
+- [x] high precision timing with optional [microbenchmarkCore](https://github.com/olafmersmann/microbenchmarkCore)
 - [x] support parallel processing
+- [ ] email notification on alerts
 
 ## Installation
 
