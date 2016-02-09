@@ -111,7 +111,7 @@ update_make_set <- function(col, x){
 #' @seealso \link{logR_schema}, \link{logR_query}
 logR = function(expr,
                 lazy = TRUE,
-                parent = NA_integer_,
+                parent = getOption("logR.id", NA_integer_),
                 alert = TRUE,
                 in_rows = NA_integer_,
                 meta = getOption("logR.meta"),
@@ -129,6 +129,10 @@ logR = function(expr,
             warning("logR 'in_rows' arg should be integer, using NA_integer_.")
             NA_integer_
         }
+    }
+    if(!is.integer(parent)){
+        # - [x] soft handling `parent` - allows NULL use NA
+        parent = if(is.numeric(parent)) as.integer(parent) else NA_integer_
     }
     stopifnot(is.logical(lazy), is.integer(parent), is.logical(alert), is.integer(in_rows), is.list(meta) || is.function(meta), is.logical(silent), is.logical(mail), !is.null(.conn), is.character(.table), is.logical(.log))
     
@@ -154,7 +158,8 @@ logR = function(expr,
     if(is.function(meta)) meta = meta()
 
     # set meta on start
-    logr = data.table(logr_start = Sys.time(),
+    logr = data.table(parent_id = parent,
+                      logr_start = Sys.time(),
                       expr = deparse_to_char(subexpr),
                       in_rows = in_rows,
                       mail = mail)
@@ -178,7 +183,9 @@ logR = function(expr,
     if(!length(logr_id) || is.na(logr_id)){
         stop("logR failed to achieve value from sequence, ensure that logR is connected.")
     }
-
+    # - [x] set logR.id option so it can be re-used for logging child logs
+    logrid.op = options("logR.id" = logr_id)
+    
     # - [x] evaluate with timing and catch interrupt/messages/warnings/error
     if(isTRUE(getOption("logR.nano")) && requireNamespace("microbenchmarkCore", quietly=TRUE)){
         if(isTRUE(getOption("logR.nano.debug"))) message("Using microbenchmarkCore `get_nanotime` for timing precision.")
@@ -192,6 +199,9 @@ logR = function(expr,
         r = tryCatch2(expr = eval(subexpr, envir = parent.frame()))
         timing = proc.time()[[3L]] - ts
     }
+    
+    # - [x] reset logR.id cache
+    options(logrid.op)
 
     # set meta on end
     logr[,`:=`(logr_id = logr_id,

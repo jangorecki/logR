@@ -18,6 +18,7 @@ schema_sql = function(schema = getOption("logR.schema"), table = getOption("logR
             schema = if(length(schema)) paste0("CREATE SCHEMA ",schema,";"),
             table = paste0('CREATE TABLE ', paste(c(schema,table),collapse="."), ' (',
                            '"logr_id" SERIAL NOT NULL PRIMARY KEY,',
+                           '"parent_id" INTEGER,',
                            '"logr_start" TIMESTAMPTZ,',
                            '"expr" VARCHAR(255),',
                            '"status" VARCHAR(255),',

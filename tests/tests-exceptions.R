@@ -80,8 +80,9 @@ invisible(logR_disconnect())
 print(r)
 
 if(!isTRUE(all.equal(
-    r[, .(logr_id, expr, status, alert, in_rows, out_rows, mail, message, cond_call, cond_message, ruser, comment)],
+    r[, .(logr_id, parent_id, expr, status, alert, in_rows, out_rows, mail, message, cond_call, cond_message, ruser, comment)],
     data.table(logr_id = c(25:1),
+               parent_id = c(24L, 23L, NA, 21L, NA, 19, NA, 17, NA, 15, rep(NA, 15)),
                expr = c("nX(i = i - 1L)", "nX(i = i - 1L)", "nX(3L)", "m1w1()", "n2m1w1()", "m1w1()", "n1m1w1()", "m1w1()", "n2()", "m1w1()", "n1()", "m1w1e1()", "w2e1()", "m2e1()", "w2m2()", "m1w1()", "m2()", "w2()", "m1()", "e1()", "w1()", "cor(c(1, 1), c(2, 3))", "sum(1, \"a\")", "dt[, .(a = sum(a)), , b]", "with(df, aggregate(a, list(b), sum))"),
                status = c("success", "success", "success", "warning", "warning", "warning", "warning", "warning", "warning", "warning", "success", "error", "error", "error", "warning", "warning", "success", "warning", "success", "error", "warning", "warning", "error", "success", "success"), 
                alert = c(FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, FALSE, TRUE, TRUE, FALSE, TRUE, FALSE, FALSE), 

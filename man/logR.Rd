@@ -3,17 +3,19 @@
 \alias{logR}
 \title{Detailed logging of R expressions}
 \usage{
-logR(expr, lazy = TRUE, alert = TRUE, in_rows = NA_integer_,
-  meta = getOption("logR.meta"), silent = getOption("logR.silent"),
-  mail = getOption("logR.mail"), mail_args = getOption("logR.mail_args"),
-  boolean = FALSE, .conn = getOption("logR.conn"),
-  .schema = getOption("logR.schema"), .table = getOption("logR.table"),
-  .log = getOption("logR.log"))
+logR(expr, lazy = TRUE, parent = getOption("logR.id", NA_integer_),
+  alert = TRUE, in_rows = NA_integer_, meta = getOption("logR.meta"),
+  silent = getOption("logR.silent"), mail = getOption("logR.mail"),
+  mail_args = getOption("logR.mail_args"), boolean = FALSE,
+  .conn = getOption("logR.conn"), .schema = getOption("logR.schema"),
+  .table = getOption("logR.table"), .log = getOption("logR.log"))
 }
 \arguments{
 \item{expr}{expression to be evaluted with logging.}
 
 \item{lazy}{logical default TRUE, use FALSE when passing language object to \emph{expr} argument.}
+
+\item{parent}{integer default NA, the `logr_id` of the parent logged process.}
 
 \item{alert}{logical, should be alert flag suppressed on warning/error, including suppressing email notification.}
 
