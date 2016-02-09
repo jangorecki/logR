@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Populate logR schema</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for logR_schema {logR}"><tr><td>logR_schema {logR}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Populate logR schema</h2>
+
+<h3>Description</h3>
+
+<p>Function will execute scripts create schema and table to store logs. To view scripts see <a href="schema_sql.html">schema_sql</a>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+logR_schema(meta = list(), drop = FALSE, silent = TRUE,
+  .conn = getOption("logR.conn"))
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>meta</code></td>
+<td>
+<p>list of metadata columns, postgres data types as character string named by column name like <code>list(tag='VARCHAR(255)', val_col='DOUBLE PRECISION', int_col='INTEGER', systimecol='TIMESTAMPTZ')</code>. Avoid reserved postgres keywords.</p>
+</td></tr>
+<tr valign="top"><td><code>drop</code></td>
+<td>
+<p>logical, drop before creation.</p>
+</td></tr>
+<tr valign="top"><td><code>silent</code></td>
+<td>
+<p>logical, silently try calls to db</p>
+</td></tr>
+<tr valign="top"><td><code>.conn</code></td>
+<td>
+<p>DBI connection.</p>
+</td></tr>
+</table>
+
+
+<h3>See Also</h3>
+
+<p><a href="schema_sql.html">schema_sql</a>, <a href="logR.html">logR</a>
+</p>
+
+<hr /><div style="text-align: center;">[Package <em>logR</em> version 2.1.4 <a href="00Index.html">Index</a>]</div>
+</body></html>
