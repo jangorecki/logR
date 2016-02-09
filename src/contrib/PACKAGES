@@ -1,9 +1,9 @@
 Package: logR
-Version: 2.1.4
+Version: 2.1.5
 Depends: data.table (>= 1.9.6), RPostgreSQL
 Imports: DBI
 Enhances: microbenchmarkCore
 License: GPL-3
-MD5sum: 0cad1b594e18bb099e2fd019d41d671b
+MD5sum: a2cd967d60934e80a6b54464172c1f31
 NeedsCompilation: no
 

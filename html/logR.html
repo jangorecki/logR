@@ -16,12 +16,12 @@
 <h3>Usage</h3>
 
 <pre>
-logR(expr, lazy = TRUE, alert = TRUE, in_rows = NA_integer_,
-  meta = getOption("logR.meta"), silent = getOption("logR.silent"),
-  mail = getOption("logR.mail"), mail_args = getOption("logR.mail_args"),
-  boolean = FALSE, .conn = getOption("logR.conn"),
-  .schema = getOption("logR.schema"), .table = getOption("logR.table"),
-  .log = getOption("logR.log"))
+logR(expr, lazy = TRUE, parent = getOption("logR.id", NA_integer_),
+  alert = TRUE, in_rows = NA_integer_, meta = getOption("logR.meta"),
+  silent = getOption("logR.silent"), mail = getOption("logR.mail"),
+  mail_args = getOption("logR.mail_args"), boolean = FALSE,
+  .conn = getOption("logR.conn"), .schema = getOption("logR.schema"),
+  .table = getOption("logR.table"), .log = getOption("logR.log"))
 </pre>
 
 
@@ -35,6 +35,10 @@ logR(expr, lazy = TRUE, alert = TRUE, in_rows = NA_integer_,
 <tr valign="top"><td><code>lazy</code></td>
 <td>
 <p>logical default TRUE, use FALSE when passing language object to <em>expr</em> argument.</p>
+</td></tr>
+<tr valign="top"><td><code>parent</code></td>
+<td>
+<p>integer default NA, the 'logr_id' of the parent logged process.</p>
 </td></tr>
 <tr valign="top"><td><code>alert</code></td>
 <td>
@@ -126,5 +130,5 @@ It might be worth to schedule a watcher task to detect such cases, see <a href="
 <p><a href="logR_schema.html">logR_schema</a>, <a href="logR_query.html">logR_query</a>
 </p>
 
-<hr /><div style="text-align: center;">[Package <em>logR</em> version 2.1.4 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>logR</em> version 2.1.5 <a href="00Index.html">Index</a>]</div>
 </body></html>

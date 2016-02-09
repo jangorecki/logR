@@ -5,7 +5,7 @@
 * using options ‘--no-manual --no-build-vignettes --as-cran’
 * checking for file ‘logR/DESCRIPTION’ ... OK
 * checking extension type ... Package
-* this is package ‘logR’ version ‘2.1.4’
+* this is package ‘logR’ version ‘2.1.5’
 * checking CRAN incoming feasibility ... NOTE
 Maintainer: ‘Jan Gorecki <j.gorecki@wit.edu.pl>’
 New submission
@@ -74,5 +74,6 @@ File README.md cannot be checked without ‘pandoc’ being installed.
 * checking tests ... OK
   Running ‘tests-exceptions.R’
   Running ‘tests-features.R’
+  Running ‘tests-hierarchical.R’
 * DONE
 Status: 1 WARNING, 3 NOTEs
