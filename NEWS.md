@@ -1,3 +1,7 @@
+# logR 2.1.5
+
+* hierarchical logs
+
 # logR 2.1.4
 
 * `logR` gets `lazy` argument default TRUE, that will allow deparsing expression easy without substitution in parent calls.

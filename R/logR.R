@@ -84,6 +84,7 @@ update_make_set <- function(col, x){
 #' @description Complete logging solution. Writes to database expressions metadata before its evaluation. Evalutes with timing and warning/error/interrupt/messages catching. Updates database entry for processing details: in/out rows, custom metadata, messages/warning/error message. Email on alerts.
 #' @param expr expression to be evaluted with logging.
 #' @param lazy logical default TRUE, use FALSE when passing language object to \emph{expr} argument.
+#' @param parent integer default NA, the `logr_id` of the parent logged process.
 #' @param alert logical, should be alert flag suppressed on warning/error, including suppressing email notification.
 #' @param in_rows integer input DF/DT nrow, \emph{logR} can only guess \emph{out_rows}.
 #' @param meta list or a function that will result such list, list of custom fields, each of length 1, list be always the same, fill missing with NA. Default \code{getOption("logR.meta",list())} means no meta columns. If the input is a function then it is evaluated with default values for all argument, and should return a valid list. If you want to change element you need to alter table before or recreate with \link{logR_schema}.
@@ -110,6 +111,7 @@ update_make_set <- function(col, x){
 #' @seealso \link{logR_schema}, \link{logR_query}
 logR = function(expr,
                 lazy = TRUE,
+                parent = NA_integer_,
                 alert = TRUE,
                 in_rows = NA_integer_,
                 meta = getOption("logR.meta"),
@@ -128,8 +130,9 @@ logR = function(expr,
             NA_integer_
         }
     }
-    stopifnot(is.logical(lazy), is.logical(alert), is.integer(in_rows), is.list(meta) || is.function(meta), is.logical(silent), is.logical(mail), !is.null(.conn), is.character(.table), is.logical(.log))
+    stopifnot(is.logical(lazy), is.integer(parent), is.logical(alert), is.integer(in_rows), is.list(meta) || is.function(meta), is.logical(silent), is.logical(mail), !is.null(.conn), is.character(.table), is.logical(.log))
     
+    # support lazy argument
     subexpr = if(lazy) substitute(expr) else expr
 
     # - [x] allow easy escape from logging using `.log` arg, keep error catching
