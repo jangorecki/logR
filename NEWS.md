@@ -4,6 +4,7 @@
 
 # logR 2.1.4
 
+* options `logR.nano.debug` allows to check if `microbenchmarkCore` is actually used.
 * `logR` gets `lazy` argument default TRUE, that will allow deparsing expression easy without substitution in parent calls.
 * `logR` gets `boolean` argument to return logical value of `status` field.
 * `logR_dump` function to dump all logs table.
