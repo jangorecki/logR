@@ -1,4 +1,5 @@
 .travis.yml
+.gitlab-ci.yml
 .gitignore
 ^.*\.Rproj$
 ^\.Rproj\.user$
