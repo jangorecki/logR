@@ -7,7 +7,8 @@ variables:
 
 pages:
   image: docker.io/jangorecki/r-pkg
-  services: postgres
+  services:
+    - postgres
   script:
     # non-R dependencies
     - apt-get update -qq
