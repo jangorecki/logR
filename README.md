@@ -2,11 +2,14 @@
 
 Extended logging solution:
 
-- [x] transactional logging: insert log, evaluate expression, update log
+- [x] **transactional logging**
+  - [x] insert log getting sequence id
+  - [x] evaluate expression with timing and exception handling
+  - [x] update log with status and metadata
 - [x] log to postgres database
 - [x] records errors, warnings, messages, interrupts
 - [x] log process metadata: in/out nrow, flexible list of custom metadata
-- [x] hierarchical logging
+- [x] hierarchical logging: parent log id collected in case of nested logging
 - [x] high precision timing with optional [microbenchmarkCore](https://github.com/olafmersmann/microbenchmarkCore)
 - [x] support parallel processing
 - [ ] email notification on alerts
@@ -14,7 +17,7 @@ Extended logging solution:
 ## Installation
 
 ```r
-install.packages("logR", repos = c("https://jangorecki.github.io/logR", "https://cran.rstudio.com"))
+install.packages("logR", repos = c("https://jangorecki.gitlab.io/logR", "https://cran.rstudio.com"))
 ```
 
 For high precision timing install suggested package [microbenchmarkCore](https://github.com/olafmersmann/microbenchmarkCore).  

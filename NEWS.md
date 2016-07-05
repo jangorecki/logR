@@ -1,6 +1,7 @@
 # logR 2.1.5
 
 * hierarchical logs
+* ci update
 
 # logR 2.1.4
 
